@@ -17,7 +17,7 @@
 import pygame
 
 GRISCLAIR  = (  214, 214, 214)
-BLEU       = (53, 164,   242)
+BLEU       = (153, 164,   242)
 
 X = 0
 Y = 1
@@ -26,10 +26,11 @@ FENETRE_LARGEUR = 800
 FENETRE_HAUTEUR = 600
 
 BORD_LARGEUR = 100
-PLAYER_TAILLE = (50,50)
+
+PLAYER_TAILLE = 50
+PLAYER_TAILLE_2 = (PLAYER_TAILLE, PLAYER_TAILLE)
 
 NOMBRE_COLONNES = 5
-
 TOUCHE_DROITE = pygame.K_RIGHT
 TOUCHE_GAUCHE = pygame.K_LEFT
 
@@ -39,7 +40,8 @@ ADROITE = 1
 def move(sens):
     player_position[X] += FENETRE_LARGEUR / NOMBRE_COLONNES * sens
     if (player_position[X] < 0): player_position[X]
-    #elif (player_position[X])
+    elif (player_position[X] + PLAYER_TAILLE >= FENETRE_LARGEUR):
+        player_position[X] = FENETRE_LARGEUR - PLAYER_TAILLE
 
 pygame.init()
 
@@ -60,17 +62,17 @@ while not fini:
             fini = True
         elif evenement.type == pygame.KEYDOWN:
             if evenement.key == TOUCHE_DROITE:
-                ... #deplace_raquette(VERS_DROITE)
+                move(ADROITE)
             elif evenement.key == TOUCHE_GAUCHE:
-                ... #deplace_raquette(VERS_GAUCHE)
+                move(AGAUCHE)
 
 
     fenetre.fill(GRISCLAIR)
 
     # affichage du joueur
     pygame.draw.rect(fenetre, BLEU, (
-        (player_position[0] - PLAYER_TAILLE[0]/2, player_position[1]), # pour qu'il soit a l'exact milieu de l'ecran
-        PLAYER_TAILLE), 
+        (player_position[0] - PLAYER_TAILLE/2, player_position[1]), # pour qu'il soit a l'exact milieu de l'ecran
+        PLAYER_TAILLE_2), 
         16, 3) #pour les bord arrondis et l'outline
 
 
