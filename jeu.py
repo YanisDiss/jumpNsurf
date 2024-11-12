@@ -58,7 +58,7 @@ fini = False
 temps = pygame.time.Clock()
 
 def col_to_pos(col):
-    return col * COL_SIZE + COL_SIZE / 2
+    return int(col * COL_SIZE + COL_SIZE / 2)
 
 def create_entity(col: int, y: int, velocity: float, acceleration: float, skin, damage: float):
     entity = {
@@ -79,7 +79,7 @@ def create_entity(col: int, y: int, velocity: float, acceleration: float, skin, 
 
 
 def create_player():
-    return create_entity(COL_NUMBERS // 2, 500, 0.1, 0, None, 0.0)
+    return create_entity(COL_NUMBERS // 2, 500, 1, 0, None, 0.0)
 
 player = create_player()
 
@@ -91,15 +91,19 @@ def move_player_animation(delta_t, entity):
     if(player["x"] == goal):
         return
 
-    delta_x = goal - entity["x"]
+    delta_x = int(goal - entity["x"])
 
     if(delta_x > 0):
-        entity["x"] += int(entity["velocity"] * delta_t)
+        if(player["x"] > goal):
+            player["x"] = goal
+        else:
+            entity["x"] += int(entity["velocity"] * delta_t)
     elif(delta_x < 0):
-        entity["x"] -= int(entity["velocity"] * delta_t)
-        
-    if(player["x"] > goal - COL_SIZE / 2 and player["x"] < goal + COL_SIZE / 2):
-        player["x"] = goal
+        if(player["x"] < goal):
+            player["x"] = goal
+        else:
+            entity["x"] -= int(entity["velocity"] * delta_t)
+    
 
 
 def move(sens):
