@@ -87,22 +87,31 @@ entities = []
 
 def move_player_animation(delta_t, entity):
     goal = col_to_pos(entity["col"])
-    
+    threshold = 10 * entity["velocity"]
     if(player["x"] == goal):
         return
 
-    delta_x = int(goal - entity["x"])
+    delta_x = goal - entity["x"]
 
-    if(delta_x > 0):
+    """
+    j'ai reussi a fix le stroke mais il faut
+    encore que j'arrive a faire en sorte que sa position
+    X ne soit pas offset quand j'arrive au goal
+    (mets la vitesse plus forte = ce que je veux dire sera plus visible)
+    
+    """
+
+    if(delta_x > threshold): # si il se deplace a droite
         if(player["x"] > goal):
             player["x"] = goal
         else:
-            entity["x"] += int(entity["velocity"] * delta_t)
-    elif(delta_x < 0):
+            entity["x"] += entity["velocity"] * delta_t
+
+    elif(delta_x < -threshold):# a gauche
         if(player["x"] < goal):
             player["x"] = goal
         else:
-            entity["x"] -= int(entity["velocity"] * delta_t)
+            entity["x"] -= entity["velocity"] * delta_t
     
 
 
