@@ -19,7 +19,8 @@ import random
 import math
 
 BG_COLOR  = (  21, 21, 21)
-MAIN_COLOR       = (153, 164,   242)
+MAIN_COLOR = (153, 164,   242)
+SCORE_COLOR = (255, 255, 255)
 
 X = 0
 Y = 1
@@ -141,6 +142,15 @@ def spawn_entities():
         entities.append(
             create_entity(random.randint(0, COL_NUMBERS - 3), -100, 0, 0.0004, TERMINATOR_IMAGE, 0.0)
         )
+
+score = 0 
+
+police = pygame.font.SysFont('monospace', WINDOW_HEIGHT//12, True) 
+
+marquoir = police.render(str(score), True, SCORE_COLOR)
+
+window.blit(marquoir, (5 * WINDOW_WIDTH // 8, WINDOW_HEIGHT // 10))
+
 
 while not fini:
     #--- Traiter entrées joueur
