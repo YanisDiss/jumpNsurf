@@ -48,6 +48,17 @@ TERMINATOR_IMAGE = pygame.transform.scale(TERMINATOR_IMAGE, (80, 80))
 TERMINATOR_IMAGE = pygame.transform.rotate(TERMINATOR_IMAGE, 180)
 
 
+HP_BAR_SIZE = 7
+vies = 10
+max_vies = 10
+
+# fonctionpour creer des images
+def image(name: str, length: float, width: float, angle: float):
+    img = pygame.image.load("assets/images/" + name + ".png")
+    img = pygame.transform.scale(img, (length, width))
+    img = pygame.transform.rotate(img, angle)
+    return img
+
 pygame.init()
 
 windowDimensions = (WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -73,7 +84,7 @@ def create_entity(col: int, y: int, velocity: float, acceleration: float, skin, 
     }
 
     if(skin):
-        entity["x"] += skin.get_size()[0]
+        entity["x"] -= skin.get_size()[0]/2
 
     return entity;
 
@@ -114,16 +125,24 @@ def move_player_animation(delta_t, entity):
         else:
             entity["x"] -= entity["velocity"] * delta_t
     
-
+def enemies():
+    global player,vies
+    for entity in entities:
+        if(entity["skin"] == TERMINATOR_IMAGE):
+            th = 80
+            if ((player["y"] <= entity["y"] + 30 and entity["y"] + th <= WINDOW_HEIGHT) and player["col"] == entity["col"]):
+                entities.remove(entity)
+                if vies > 0: vies -= 1
 
 def move(sens):
-    global col_x
+    global col_x, score,vies
     
     if((player["col"] <= 1 and sens == TO_THE_LEFT) or (player["col"] >= COL_NUMBERS - 2 and sens == TO_THE_RIGHT)):
         return
 
-
     player["col"] += sens
+
+    score += 1 #temporaire?
 
 def draw_entities():
     for entity in entities:
@@ -138,19 +157,14 @@ def move_entities(delta):
             entities.remove(entity)
 
 def spawn_entities():
-    if random.random() > 0.99:
+    if random.random() > 0.98:
         entities.append(
-            create_entity(random.randint(0, COL_NUMBERS - 3), -100, 0, 0.0004, TERMINATOR_IMAGE, 0.0)
+            create_entity(random.randint(1,COL_NUMBERS -2), -100, 0, 0.0004, TERMINATOR_IMAGE, 1)
         )
 
-score = 0 
-
+# déclaration du score
+score = 0
 police = pygame.font.SysFont('monospace', WINDOW_HEIGHT//12, True) 
-
-marquoir = police.render(str(score), True, SCORE_COLOR)
-
-window.blit(marquoir, (5 * WINDOW_WIDTH // 8, WINDOW_HEIGHT // 10))
-
 
 while not fini:
     #--- Traiter entrées joueur
@@ -166,16 +180,11 @@ while not fini:
 
     window.fill(BG_COLOR)
 
-    # affichage du joueur
-    pygame.draw.rect(window, MAIN_COLOR, (
-        (player["x"] - PLAYER_SIZE/2, player["y"]), # pour qu'il soit a l'exact milieu de l'ecran
-        PLAYER_SIZE_2), 
-        16, 3) #pour les bord arrondis et l'outline
-
 
     # pour les bords
     pygame.draw.rect(window, MAIN_COLOR, ((0, 0), (COL_SIZE, WINDOW_HEIGHT)))
     pygame.draw.rect(window, MAIN_COLOR, ((WINDOW_WIDTH - COL_SIZE, 0), (COL_SIZE, WINDOW_HEIGHT)))
+
 
     #--- 60 images par seconde
     delta = temps.tick(60)
@@ -184,6 +193,22 @@ while not fini:
     draw_entities()
     spawn_entities()
     move_player_animation(delta, player)
+    enemies()
+
+     # affichage du joueur
+    pygame.draw.rect(window, MAIN_COLOR, (
+        (player["x"] - PLAYER_SIZE/2, player["y"]), # pour qu'il soit a l'exact milieu de l'ecran
+        PLAYER_SIZE_2), 
+        16, 3) #pour les bord arrondis et l'outline
+
+    # barre de vie
+    pygame.draw.rect(window, (255,0,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE, HP_BAR_SIZE)), 0, 3)
+    pygame.draw.rect(window, (0,255,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE / max_vies * vies, HP_BAR_SIZE)),0,3)
+
+
+    # affichage du score
+    marquoir = police.render(str(score), True, SCORE_COLOR)
+    window.blit(marquoir, (WINDOW_WIDTH / 2, WINDOW_HEIGHT // 10))
 
     #--- Afficher (rafraîchir) l'écran
     pygame.display.flip()
