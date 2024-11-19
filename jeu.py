@@ -197,33 +197,44 @@ def introduction():
     title_width, title_height = police_title.size("'Jump'N'Surf'")
     window.blit(title, ((WINDOW_WIDTH - title_width) // 2, (WINDOW_HEIGHT - title_height) // 4))
     message1 = police.render("[Q]uitter", True, BLACK)
-    message1_width, message1_height = police.size("[Q]quitter")
+    message1_width, message1_height = police.size("[Q]uitter")
     window.blit(message1, ((WINDOW_WIDTH - message1_width) // 2, 4 * WINDOW_HEIGHT // 5))
 
 
-start = True
+isInStartMenu = True
 delai = False 
 
 # déclaration du score
 score = 0
 police = pygame.font.SysFont('monospace', WINDOW_HEIGHT//12, True ) 
 
-while start:
-    if delai == False:
-        introduction()
 
-    #--- 60 images par seconde
-    delta = temps.tick(60)
-    draw_game()
-    move_entities(delta)
-    draw_entities()
-    spawn_entities()
-    move_player_animation(delta, player)
-    enemies()
+while not fini:
+        #--- Traiter entrées joueur
+        for evenement in pygame.event.get():
+            if evenement.type == pygame.QUIT:
+                fini = True
+            elif evenement.type == pygame.KEYDOWN:
+                if evenement.key == KEY_RIGHT:
+                    move(TO_THE_RIGHT)
+                elif evenement.key == KEY_LEFT:
+                    move(TO_THE_LEFT)
 
-     
-    #--- Afficher (rafraîchir) l'écran
-    pygame.display.flip()
+        #--- 60 images par seconde
+        delta = temps.tick(60)
+        draw_game()
+        move_entities(delta)
+        draw_entities()
+        spawn_entities()
+        move_player_animation(delta, player)
+        enemies()
+
+        if isInStartMenu:
+            introduction()
+
+        
+        #--- Afficher (rafraîchir) l'écran
+        pygame.display.flip()
 
 
 pygame.display.quit()
