@@ -21,7 +21,9 @@ import math
 BG_COLOR  = (  21, 21, 21)
 MAIN_COLOR = (153, 164,   242)
 SCORE_COLOR = (255, 255, 255)
-BLACK = (0, 0, 0)
+MENU_COLOR = (56, 82, 128)
+MPOLICE_COLOR = (0, 0, 0)
+M2POLICE_COLOR = (36, 37, 38)
 
 X = 0
 Y = 1
@@ -38,6 +40,7 @@ COL_SIZE = WINDOW_WIDTH/COL_NUMBERS # taille d'une colonne
 KEY_RIGHT = pygame.K_RIGHT
 KEY_LEFT = pygame.K_LEFT
 KEY_QUIT = pygame.K_q
+KEY_ENTER = pygame.K_e
 
 TO_THE_LEFT = -1
 TO_THE_RIGHT = 1
@@ -191,14 +194,17 @@ def spawn_entities():
 def introduction():
     global police
 
-    window.fill(BG_COLOR)
+    window.fill(MAIN_COLOR)
     police_title = pygame.font.SysFont('Monospace', 60, True)
-    title = police_title.render("Jump'N'Surf", True, MAIN_COLOR)
-    title_width, title_height = police_title.size("'Jump'N'Surf'")
+    title = police_title.render("Jump'N'Surf", True, MPOLICE_COLOR)
+    title_width, title_height = police_title.size("Jump'N'Surf")
     window.blit(title, ((WINDOW_WIDTH - title_width) // 2, (WINDOW_HEIGHT - title_height) // 4))
-    message1 = police.render("[Q]uitter", True, BLACK)
+    message1 = police.render("[Q]uitter", True, M2POLICE_COLOR)
     message1_width, message1_height = police.size("[Q]uitter")
-    window.blit(message1, ((WINDOW_WIDTH - message1_width) // 2, 4 * WINDOW_HEIGHT // 5))
+    window.blit(message1, ((WINDOW_WIDTH - message1_width) // 2, 3 * WINDOW_HEIGHT // 5))
+    message2 = police.render("[E]nter", True, M2POLICE_COLOR)
+    message2_width, message2_height = police.size("[E]nter")
+    window.blit(message2, ((WINDOW_WIDTH - message1_width) // 2, 3 * WINDOW_HEIGHT // 5 + 1.2 * message1_height))
 
 
 isInStartMenu = True
@@ -219,6 +225,8 @@ while not fini:
                     move(TO_THE_RIGHT)
                 elif evenement.key == KEY_LEFT:
                     move(TO_THE_LEFT)
+                elif evenement.key == KEY_ENTER:
+                    isInStartMenu = False
 
         #--- 60 images par seconde
         delta = temps.tick(60)
