@@ -52,7 +52,6 @@ TERMINATOR_IMAGE = pygame.image.load("assets/images/terminator.png")
 TERMINATOR_IMAGE = pygame.transform.scale(TERMINATOR_IMAGE, (80, 80))
 TERMINATOR_IMAGE = pygame.transform.rotate(TERMINATOR_IMAGE, 180)
 
-
 HP_BAR_SIZE = 7
 playerHealth = 100
 playerMaxHealth = 100
@@ -65,6 +64,9 @@ def image(name: str, length: float, width: float, angle: float):
     return img
 
 pygame.init()
+
+pygame_icon = pygame.image.load('assets/images/image.png')
+pygame.display.set_icon(pygame_icon)
 
 windowDimensions = (WINDOW_WIDTH, WINDOW_HEIGHT)
 window = pygame.display.set_mode(windowDimensions)
@@ -251,16 +253,32 @@ def introduction():
     title = police_title.render("Jump'N'Surf", True, MPOLICE_COLOR)
     title_width, title_height = police_title.size("Jump'N'Surf")
     window.blit(title, ((WINDOW_WIDTH - title_width) // 2, (WINDOW_HEIGHT - title_height) // 4))
-    message1 = police.render("[Q]uitter", True, M2POLICE_COLOR)
-    message1_width, message1_height = police.size("[Q]uitter")
+    message1 = police.render("[Q]uit", True, M2POLICE_COLOR)
+    message1_width, message1_height = police.size("[Q]uit")
     window.blit(message1, ((WINDOW_WIDTH - message1_width) // 2, 3 * WINDOW_HEIGHT // 5))
     message2 = police.render("[E]nter", True, M2POLICE_COLOR)
     message2_width, message2_height = police.size("[E]nter")
     window.blit(message2, ((WINDOW_WIDTH - message1_width) // 2, 3 * WINDOW_HEIGHT // 5 + 1.2 * message1_height))
 
+def end():
+   global playerHealth, isDead, police, score
+
+   if playerHealth <= 0:
+       isDead = True
+       window.fill(MAIN_COLOR)
+       police_character = pygame.font.SysFont('monospace', 24, True)
+       message = police_character.render("GAME OVER", True, MPOLICE_COLOR)
+       messageWidth, messageHeight = police_character.size("GAME OVER!")
+       window.blit(message, ((WINDOW_WIDTH - messageWidth) // 2, (WINDOW_HEIGHT - messageHeight) // 2))
+
+       # Afficher le score final
+       score_message = police_character.render(f"Score : {score} ", True, SCORE_COLOR)
+       score_width, score_height = score_message.get_size()
+       window.blit(score_message, ((WINDOW_WIDTH - score_width) // 2, (WINDOW_HEIGHT - score_height) // 2 + 50))
 
 isInStartMenu = True
 delai = False 
+isDead = False
 
 # déclaration du score
 score = 0
@@ -271,6 +289,7 @@ while not fini:
         #--- Traiter entrées joueur
         for evenement in pygame.event.get():
             if evenement.type == pygame.QUIT:
+                exit()
                 fini = True
             elif evenement.type == pygame.KEYDOWN:
                 if evenement.key == KEY_RIGHT:
@@ -290,12 +309,14 @@ while not fini:
             spawn_entities()
             move_entity_animation(delta, player)
             enemies()
+            end()
 
             time_elapsed += delta
 
         #--- Afficher (rafraîchir) l'écran
         pygame.display.flip()
 
-
+pygame.time.wait(5000)
 pygame.display.quit()
 pygame.quit()
+exit()
