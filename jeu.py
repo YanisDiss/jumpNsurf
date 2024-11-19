@@ -65,7 +65,6 @@ windowDimensions = (WINDOW_WIDTH, WINDOW_HEIGHT)
 window = pygame.display.set_mode(windowDimensions)
 
 window.fill(BG_COLOR)
-
 fini = False
 temps = pygame.time.Clock()
 
@@ -148,6 +147,31 @@ def draw_entities():
     for entity in entities:
         window.blit(entity["skin"], (entity["x"], entity["y"]))
 
+def draw_game():
+
+    window.fill(BG_COLOR)
+
+    # pour les bords
+    pygame.draw.rect(window, MAIN_COLOR, ((0, 0), (COL_SIZE, WINDOW_HEIGHT)))
+    pygame.draw.rect(window, MAIN_COLOR, ((WINDOW_WIDTH - COL_SIZE, 0), (COL_SIZE, WINDOW_HEIGHT)))
+
+    # affichage du joueur
+    pygame.draw.rect(window, MAIN_COLOR, (
+        (player["x"] - PLAYER_SIZE/2, player["y"]), # pour qu'il soit a l'exact milieu de l'ecran
+        PLAYER_SIZE_2), 
+        16, 3) #pour les bord arrondis et l'outline
+
+    # barre de vie
+    pygame.draw.rect(window, (255,0,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE, HP_BAR_SIZE)), 0, 3)
+    pygame.draw.rect(window, (0,255,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE / playerMaxHealth * playerHealth, HP_BAR_SIZE)),0,3)
+
+
+    # affichage du score
+    marquoir = police.render(str(score), True, SCORE_COLOR)
+    window.blit(marquoir, (WINDOW_WIDTH / 2, WINDOW_HEIGHT // 10))
+
+
+
 def move_entities(delta):
     for entity in entities:
         entity["velocity"] += entity["acceleration"] * delta
@@ -178,38 +202,16 @@ while not fini:
                 move(TO_THE_LEFT)
 
 
-    window.fill(BG_COLOR)
-
-
-    # pour les bords
-    pygame.draw.rect(window, MAIN_COLOR, ((0, 0), (COL_SIZE, WINDOW_HEIGHT)))
-    pygame.draw.rect(window, MAIN_COLOR, ((WINDOW_WIDTH - COL_SIZE, 0), (COL_SIZE, WINDOW_HEIGHT)))
-
-
     #--- 60 images par seconde
     delta = temps.tick(60)
-
+    draw_game()
     move_entities(delta)
     draw_entities()
     spawn_entities()
     move_player_animation(delta, player)
     enemies()
 
-     # affichage du joueur
-    pygame.draw.rect(window, MAIN_COLOR, (
-        (player["x"] - PLAYER_SIZE/2, player["y"]), # pour qu'il soit a l'exact milieu de l'ecran
-        PLAYER_SIZE_2), 
-        16, 3) #pour les bord arrondis et l'outline
-
-    # barre de vie
-    pygame.draw.rect(window, (255,0,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE, HP_BAR_SIZE)), 0, 3)
-    pygame.draw.rect(window, (0,255,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE / playerMaxHealth * playerHealth, HP_BAR_SIZE)),0,3)
-
-
-    # affichage du score
-    marquoir = police.render(str(score), True, SCORE_COLOR)
-    window.blit(marquoir, (WINDOW_WIDTH / 2, WINDOW_HEIGHT // 10))
-
+     
     #--- Afficher (rafraîchir) l'écran
     pygame.display.flip()
 
