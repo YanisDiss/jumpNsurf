@@ -115,14 +115,14 @@ levels = [
     create_level(7, [
         {
             "type": "terminator",
-            "spawn_rate": 20
+            "spawn_rate": 50
         }
     ]),
 ]
 
 def spawn_entity(entity_type):
     if entity_type == "terminator":
-        return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.5, 0, TERMINATOR_IMAGE, 5, 0.01, .5)
+        return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.7, 0, TERMINATOR_IMAGE, 5, 0.01, .5)
 
 current_level = 0
 
@@ -231,7 +231,6 @@ def move_entities(delta):
             elif(entity["col"] == COL_NUMBERS - 2):
                 entity["col"] -= 1
             else:
-                print(random.randrange(-1, 2, 2))
                 entity["col"] += random.randrange(-1, 2, 2)
         
         move_entity_animation(delta, entity)
