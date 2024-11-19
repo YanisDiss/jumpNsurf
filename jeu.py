@@ -49,8 +49,8 @@ TERMINATOR_IMAGE = pygame.transform.rotate(TERMINATOR_IMAGE, 180)
 
 
 HP_BAR_SIZE = 7
-vies = 10
-max_vies = 10
+playerHealth = 100
+playerMaxHealth = 100
 
 # fonctionpour creer des images
 def image(name: str, length: float, width: float, angle: float):
@@ -126,16 +126,16 @@ def move_player_animation(delta_t, entity):
             entity["x"] -= entity["velocity"] * delta_t
     
 def enemies():
-    global player,vies
+    global player,playerHealth
     for entity in entities:
         if(entity["skin"] == TERMINATOR_IMAGE):
             th = 80
             if ((player["y"] <= entity["y"] + 30 and entity["y"] + th <= WINDOW_HEIGHT) and player["col"] == entity["col"]):
                 entities.remove(entity)
-                if vies > 0: vies -= 1
+                if playerHealth > 0: playerHealth -= entity["damage"]
 
 def move(sens):
-    global col_x, score,vies
+    global col_x, score
     
     if((player["col"] <= 1 and sens == TO_THE_LEFT) or (player["col"] >= COL_NUMBERS - 2 and sens == TO_THE_RIGHT)):
         return
@@ -157,9 +157,9 @@ def move_entities(delta):
             entities.remove(entity)
 
 def spawn_entities():
-    if random.random() > 0.98:
+    if random.random() > 0.95:
         entities.append(
-            create_entity(random.randint(1,COL_NUMBERS -2), -100, 0, 0.0004, TERMINATOR_IMAGE, 1)
+            create_entity(random.randint(1,COL_NUMBERS -2), -100, 1, 0, TERMINATOR_IMAGE, 5)
         )
 
 # déclaration du score
@@ -203,7 +203,7 @@ while not fini:
 
     # barre de vie
     pygame.draw.rect(window, (255,0,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE, HP_BAR_SIZE)), 0, 3)
-    pygame.draw.rect(window, (0,255,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE / max_vies * vies, HP_BAR_SIZE)),0,3)
+    pygame.draw.rect(window, (0,255,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE / playerMaxHealth * playerHealth, HP_BAR_SIZE)),0,3)
 
 
     # affichage du score
