@@ -77,7 +77,7 @@ time_elapsed = 0
 def col_to_pos(col):
     return int(col * COL_SIZE + COL_SIZE / 2)
 
-def create_entity(col: int, y: int, velocity: float, acceleration: float, skin, damage: int):
+def create_entity(col: int, y: int, velocity: float, acceleration: float, skin, damage: int, sike_probability = 0, sike_speed = 1):
     entity = {
         "col": col,
         "x": col_to_pos(col),
@@ -86,6 +86,8 @@ def create_entity(col: int, y: int, velocity: float, acceleration: float, skin, 
         "acceleration": acceleration,
         "skin": skin,
         "damage": damage,
+        "sike_probability": sike_probability,
+        "sike_speed": sike_speed
     }
 
     if(skin):
@@ -100,7 +102,7 @@ def create_level(col_amount: int, entities: list):
     }
 
 def create_player():
-    return create_entity(COL_NUMBERS // 2, 500, 1, 0, None, 0.0)
+    return create_entity(COL_NUMBERS // 2, 500, 1, 0, None, 0.0, 0)
 
 
 player = create_player()
@@ -118,14 +120,20 @@ levels = [
 
 def spawn_entity(entity_type):
     if entity_type == "terminator":
-        return create_entity(random.randint(1,COL_NUMBERS -2), -100, 1, 0, TERMINATOR_IMAGE, 5)
+        return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.5, 0, TERMINATOR_IMAGE, 5, 0.01, .5)
 
 current_level = 0
 
 def move_entity_animation(delta_t, entity):
     goal = col_to_pos(entity["col"])
-    threshold = 10 * entity["velocity"]
-    if(player["x"] == goal):
+
+    skin = entity["skin"]
+
+    if(skin):
+        goal -= skin.get_size()[0]/2
+    threshold = 10 * entity["sike_speed"]
+
+    if(entity["x"] == goal):
         return
 
     delta_x = goal - entity["x"]
@@ -139,16 +147,16 @@ def move_entity_animation(delta_t, entity):
     """
 
     if(delta_x > threshold): # si il se deplace a droite
-        if(player["x"] > goal):
-            player["x"] = goal
+        if(entity["x"] > goal):
+            entity["x"] = goal
         else:
-            entity["x"] += entity["velocity"] * delta_t
+            entity["x"] += entity["sike_speed"] * delta_t
 
     elif(delta_x < -threshold):# a gauche
-        if(player["x"] < goal):
-            player["x"] = goal
+        if(entity["x"] < goal):
+            entity["x"] = goal
         else:
-            entity["x"] -= entity["velocity"] * delta_t
+            entity["x"] -= entity["sike_speed"] * delta_t
     
 def enemies():
     global player, playerHealth
@@ -214,6 +222,18 @@ def move_entities(delta):
     for entity in entities:
         entity["velocity"] += entity["acceleration"] * delta
         entity["y"] += entity["velocity"] * delta
+
+        if entity["sike_probability"] and (random.random() > 1 - entity["sike_probability"]):
+            if(entity["col"] == 1):
+                entity["col"] += 1
+            elif(entity["col"] == COL_NUMBERS - 2):
+                entity["col"] -= 1
+            else:
+                print(random.randrange(-1, 2, 2))
+                entity["col"] += random.randrange(-1, 2, 2)
+        
+        move_entity_animation(delta, entity)
+        
 
         if(entity["y"] > WINDOW_HEIGHT):
             entities.remove(entity)
