@@ -55,6 +55,12 @@ SPIKE_BALL_IMAGE = pygame.image.load("assets/images/spikeball.png")
 SPIKE_BALL_IMAGE = pygame.transform.scale(SPIKE_BALL_IMAGE, (80, 80))
 SPIKE_BALL_IMAGE = pygame.transform.rotate(SPIKE_BALL_IMAGE, 180)
 
+CYPHER_IMAGE = pygame.image.load("assets/images/cypher.png")
+CYPHER_IMAGE = pygame.transform.scale(CYPHER_IMAGE, (120, 100))
+
+JAKE_IMAGE = pygame.image.load("assets/images/jake.png")
+JAKE_IMAGE = pygame.transform.scale(JAKE_IMAGE, (100, 120))
+
 HP_BAR_SIZE = 7
 playerMaxHealth = 100
 playerHealth = playerMaxHealth
@@ -102,7 +108,7 @@ def create_entity(col: int, y: int, velocity: float, acceleration: float, skin, 
     if(skin):
         entity["x"] -= skin.get_size()[0]/2
 
-    return entity;
+    return entity
 
 def create_player():
     return create_entity(COL_NUMBERS // 2, 500, 1, 0, None, 0.0, 0)
@@ -112,6 +118,10 @@ def spawn_entity(entity_type):
         return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.5, 0, TERMINATOR_IMAGE, 5, 0, .5)
     if entity_type == "spike_ball":
         return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.2, 0.002, SPIKE_BALL_IMAGE, 10, 0.005, .5)
+    if entity_type == "cypher":
+        return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.2, 0, CYPHER_IMAGE, 50, 0.002)
+    if entity_type == "jake":
+        return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.05, 0, JAKE_IMAGE, 99999, 0)
 
 player = create_player()
 
@@ -220,6 +230,14 @@ levels = [
                 "type": "terminator",
                 "spawn_rate": 50
             },
+            {
+                "type": "cypher",
+                "spawn_rate": 600
+            },
+            {
+                "type": "jake",
+                "spawn_rate": 100
+            }
         ]
     ),
     create_level(
@@ -234,6 +252,10 @@ levels = [
             {
                 "type": "spike_ball",
                 "spawn_rate": 100
+            },
+                        {
+                "type": "cypher",
+                "spawn_rate": 400
             }
         ]
     ),
@@ -249,6 +271,10 @@ levels = [
             {
                 "type": "spike_ball",
                 "spawn_rate": 100
+            },
+                        {
+                "type": "cypher",
+                "spawn_rate": 200
             }
         ]
     ),
@@ -264,6 +290,11 @@ levels = [
             {
                 "type": "spike_ball",
                 "spawn_rate": 80
+            },
+            
+            {
+                "type": "cypher",
+                "spawn_rate": 100
             }
         ]
     ),
@@ -274,11 +305,15 @@ levels = [
         [
             {
                 "type": "terminator",
-                "spawn_rate": 1
+                "spawn_rate": 10
             },
             {
                 "type": "spike_ball",
-                "spawn_rate": 10
+                "spawn_rate": 25
+            },
+                        {
+                "type": "cypher",
+                "spawn_rate": 50
             }
         ]
     ),
