@@ -16,10 +16,9 @@ test
 
 import pygame
 import random
-import math
 
+####################################################### Initialization #######################################################
 BG_COLOR  = (  21, 21, 21)
-MAIN_COLOR = (153, 164,   242)
 SCORE_COLOR = (255, 255, 255)
 MENU_COLOR = (56, 82, 128)
 MPOLICE_COLOR = (0, 0, 0)
@@ -52,9 +51,15 @@ TERMINATOR_IMAGE = pygame.image.load("assets/images/terminator.png")
 TERMINATOR_IMAGE = pygame.transform.scale(TERMINATOR_IMAGE, (80, 80))
 TERMINATOR_IMAGE = pygame.transform.rotate(TERMINATOR_IMAGE, 180)
 
+SPIKE_BALL_IMAGE = pygame.image.load("assets/images/spikeball.png")
+SPIKE_BALL_IMAGE = pygame.transform.scale(SPIKE_BALL_IMAGE, (80, 80))
+SPIKE_BALL_IMAGE = pygame.transform.rotate(SPIKE_BALL_IMAGE, 180)
+
 HP_BAR_SIZE = 7
-playerMaxHealth = 1000000
+playerMaxHealth = 100
 playerHealth = playerMaxHealth
+
+main_color = (153, 164,   242)
 
 # fonctionpour creer des images
 def image(name: str, length: float, width: float, angle: float):
@@ -79,6 +84,8 @@ time_elapsed = 0
 def col_to_pos(col):
     return int(col * COL_SIZE + COL_SIZE / 2)
 
+####################################################### Entities #######################################################
+
 def create_entity(col: int, y: int, velocity: float, acceleration: float, skin, damage: int, sike_probability = 0, sike_speed = 1):
     entity = {
         "col": col,
@@ -97,34 +104,40 @@ def create_entity(col: int, y: int, velocity: float, acceleration: float, skin, 
 
     return entity;
 
-def create_level(col_amount: int, entities: list):
-    return {
-        "col_amount": col_amount,
-        "entities": entities
-    }
-
 def create_player():
     return create_entity(COL_NUMBERS // 2, 500, 1, 0, None, 0.0, 0)
 
+def spawn_entity(entity_type):
+    if entity_type == "terminator":
+        return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.5, 0, TERMINATOR_IMAGE, 5, 0, .5)
+    if entity_type == "spike_ball":
+        return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.2, 0.002, SPIKE_BALL_IMAGE, 10, 0.005, .5)
 
 player = create_player()
 
 entities = []
 
-levels = [
-    create_level(7, [
-        {
-            "type": "terminator",
-            "spawn_rate": 50
-        }
-    ]),
-]
+def damage_player():
+    global player, playerHealth
+    for entity in entities:
+        th = 80
+        if (entity["damage"] != 0 and (player["y"] <= entity["y"] + 30 and entity["y"] + th <= WINDOW_HEIGHT) and player["col"] == entity["col"]):
+            entities.remove(entity)
+            if playerHealth > 0 and playerHealth - entity["damage"] < playerMaxHealth: playerHealth -= entity["damage"]
 
-def spawn_entity(entity_type):
-    if entity_type == "terminator":
-        return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.5, 0, TERMINATOR_IMAGE, 5, 0.01, .5)
+def move_player(sens):
+    global col_x, score
+    
+    if((player["col"] <= 1 and sens == TO_THE_LEFT) or (player["col"] >= COL_NUMBERS - 2 and sens == TO_THE_RIGHT)):
+        return
 
-current_level = 0
+    player["col"] += sens
+
+    add_score(1)
+
+def draw_entities():
+    for entity in entities:
+        window.blit(entity["skin"], (entity["x"], entity["y"]))
 
 def move_entity_animation(delta_t, entity):
     goal = col_to_pos(entity["col"])
@@ -159,66 +172,6 @@ def move_entity_animation(delta_t, entity):
             entity["x"] = goal
         else:
             entity["x"] -= entity["sike_speed"] * delta_t
-    
-def enemies():
-    global player, playerHealth
-    for entity in entities:
-        th = 80
-        if (entity["damage"] != 0 and (player["y"] <= entity["y"] + 30 and entity["y"] + th <= WINDOW_HEIGHT) and player["col"] == entity["col"]):
-            entities.remove(entity)
-            if playerHealth > 0 and playerHealth - entity["damage"] < playerMaxHealth: playerHealth -= entity["damage"]
-
-def move(sens):
-    global col_x, score
-    
-    if((player["col"] <= 1 and sens == TO_THE_LEFT) or (player["col"] >= COL_NUMBERS - 2 and sens == TO_THE_RIGHT)):
-        return
-
-    player["col"] += sens
-
-    score += 1 #temporaire?
-
-def draw_entities():
-    for entity in entities:
-        window.blit(entity["skin"], (entity["x"], entity["y"]))
-
-def draw_borders():
-    """
-    Dessine les bords
-    """
-    pygame.draw.rect(window, MAIN_COLOR, ((0, 0), (COL_SIZE, WINDOW_HEIGHT)))
-    pygame.draw.rect(window, MAIN_COLOR, ((WINDOW_WIDTH - COL_SIZE, 0), (COL_SIZE, WINDOW_HEIGHT)))
-
-def draw_player():
-    pygame.draw.rect(window, MAIN_COLOR, (
-    (player["x"] - PLAYER_SIZE/2, player["y"]), # pour qu'il soit a l'exact milieu de l'ecran
-    PLAYER_SIZE_2), 
-    16, 3) #pour les bord arrondis et l'outlineµ
-    
-def draw_hp():
-    pygame.draw.rect(window, (255,0,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE, HP_BAR_SIZE)), 0, 3)
-    pygame.draw.rect(window, (0,255,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE / playerMaxHealth * playerHealth, HP_BAR_SIZE)),0,3)
-
-def draw_score():
-    marquoir = police.render(str(score), True, SCORE_COLOR)
-    window.blit(marquoir, (WINDOW_WIDTH / 2, WINDOW_HEIGHT // 10))
-
-
-def draw_game():
-
-    window.fill(BG_COLOR)
-
-    draw_borders()
-
-    draw_player()
-
-    draw_hp()
-
-    draw_entities()
-
-    draw_score()
-
-
 
 def move_entities(delta):
     for entity in entities:
@@ -244,10 +197,156 @@ def spawn_entities():
         if time_elapsed % entity_type["spawn_rate"] == 0:
             entities.append(spawn_entity(entity_type["type"]))
 
-def introduction():
+####################################################### Level #######################################################
+
+
+def create_level(col_amount: int, required_score: int, rgb_speed, entities: list):
+    return {
+        "required_score": required_score,
+        "col_amount": col_amount,
+        "rgb_speed": rgb_speed,
+        "entities": entities
+    }
+
+
+levels = [
+    # Level 1
+    create_level(
+        7,
+        0,
+        0,
+        [
+            {
+                "type": "terminator",
+                "spawn_rate": 50
+            },
+        ]
+    ),
+    create_level(
+        7,
+        50,
+        1,
+        [
+            {
+                "type": "terminator",
+                "spawn_rate": 50
+            },
+            {
+                "type": "spike_ball",
+                "spawn_rate": 100
+            }
+        ]
+    ),
+    create_level(
+        7,
+        100,
+        10,
+        [
+            {
+                "type": "terminator",
+                "spawn_rate": 40
+            },
+            {
+                "type": "spike_ball",
+                "spawn_rate": 100
+            }
+        ]
+    ),
+    create_level(
+        7,
+        150,
+        30,
+        [
+            {
+                "type": "terminator",
+                "spawn_rate": 30
+            },
+            {
+                "type": "spike_ball",
+                "spawn_rate": 80
+            }
+        ]
+    ),
+    create_level(
+        7,
+        200,
+        50,
+        [
+            {
+                "type": "terminator",
+                "spawn_rate": 1
+            },
+            {
+                "type": "spike_ball",
+                "spawn_rate": 10
+            }
+        ]
+    ),
+]
+
+def add_score(amount: int):
+    global score, current_level
+    score += amount
+
+    for i in range(len(levels)):
+        if levels[i]["required_score"] <= score:
+            if i >= len(levels) - 1:
+                current_level = len(levels) - 1
+                break
+
+            if levels[i + 1]["required_score"] > score:
+                current_level = i
+
+    
+
+
+
+current_level = 0
+
+####################################################### Render #######################################################
+
+def draw_borders():
+    """
+    Dessine les bords
+    """
+    pygame.draw.rect(window, main_color, ((0, 0), (COL_SIZE, WINDOW_HEIGHT)))
+    pygame.draw.rect(window, main_color, ((WINDOW_WIDTH - COL_SIZE, 0), (COL_SIZE, WINDOW_HEIGHT)))
+
+def draw_player():
+    pygame.draw.rect(window, main_color, (
+    (player["x"] - PLAYER_SIZE/2, player["y"]), # pour qu'il soit a l'exact milieu de l'ecran
+    PLAYER_SIZE_2), 
+    16, 3) #pour les bord arrondis et l'outlineµ
+    
+def draw_hp():
+    pygame.draw.rect(window, (255,0,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE, HP_BAR_SIZE)), 0, 3)
+    pygame.draw.rect(window, (0,255,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE / playerMaxHealth * playerHealth, HP_BAR_SIZE)),0,3)
+
+def draw_score():
+    marquoir = police.render(str(score), True, SCORE_COLOR)
+    window.blit(marquoir, (WINDOW_WIDTH / 2, WINDOW_HEIGHT // 10))
+
+
+def draw_game():
+    window.fill(BG_COLOR)
+
+    draw_borders()
+
+    draw_player()
+
+    draw_hp()
+
+    draw_entities()
+
+    draw_score()
+
+score = 0
+police = pygame.font.SysFont('monospace', WINDOW_HEIGHT//12, True ) 
+
+def render_home_screen():
     global police
 
-    window.fill(MAIN_COLOR)
+    window.fill(main_color)
     police_title = pygame.font.SysFont('Monospace', 60, True)
     title = police_title.render("Jump'N'Surf", True, MPOLICE_COLOR)
     title_width, title_height = police_title.size("Jump'N'Surf")
@@ -259,12 +358,12 @@ def introduction():
     message2_width, message2_height = police.size("[E]nter")
     window.blit(message2, ((WINDOW_WIDTH - message1_width) // 2, 3 * WINDOW_HEIGHT // 5 + 1.2 * message1_height))
 
-def end():
+def render_death_screen():
    global playerHealth, isDead, police, score
 
    if playerHealth <= 0:
        isDead = True
-       window.fill(MAIN_COLOR)
+       window.fill(main_color)
        police_character = pygame.font.SysFont('monospace', 24, True)
        message = police_character.render("GAME OVER", True, MPOLICE_COLOR)
        messageWidth, messageHeight = police_character.size("GAME OVER!")
@@ -275,17 +374,18 @@ def end():
        score_width, score_height = score_message.get_size()
        window.blit(score_message, ((WINDOW_WIDTH - score_width) // 2, (WINDOW_HEIGHT - score_height) // 2 + 50))
 
+####################################################### Color animation #######################################################
 
-red=255
+red=0
 green=0
-blue=0
+blue=255
 
 rg = False
 gb = False
 br = False
 
-def rgb(speed):
-    global MAIN_COLOR, red, green, blue, rg, gb, br
+def animate_color(speed):
+    global main_color, red, green, blue, rg, gb, br
     if(speed == 0):
         return
     
@@ -308,15 +408,12 @@ def rgb(speed):
                     red = min(red + speed, 255)
                     blue = max(blue - speed, 0)
 
-    MAIN_COLOR = (red,green,blue)
+    main_color = (red,green,blue)
+
+####################################################### Main loop #######################################################
 
 isInStartMenu = True
-delai = False 
 isDead = False
-
-# déclaration du score
-score = 0
-police = pygame.font.SysFont('monospace', WINDOW_HEIGHT//12, True ) 
 
 while not fini:
         #--- Traiter entrées joueur
@@ -326,14 +423,14 @@ while not fini:
                 fini = True
             elif evenement.type == pygame.KEYDOWN:
                 if evenement.key == KEY_RIGHT:
-                    move(TO_THE_RIGHT)
+                    move_player(TO_THE_RIGHT)
                 elif evenement.key == KEY_LEFT:
-                    move(TO_THE_LEFT)
+                    move_player(TO_THE_LEFT)
                 elif evenement.key == KEY_ENTER:
                     isInStartMenu = False
 
         if isInStartMenu:
-            introduction()
+            render_home_screen()
         else:
             #--- 60 images par seconde
             delta = temps.tick(60)
@@ -341,9 +438,9 @@ while not fini:
             move_entities(delta)
             spawn_entities()
             move_entity_animation(delta, player)
-            enemies()
-            end()
-            rgb(10)
+            damage_player()
+            render_death_screen()
+            animate_color(levels[current_level]["rgb_speed"])
 
             time_elapsed += delta
 
