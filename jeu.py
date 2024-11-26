@@ -40,6 +40,7 @@ KEY_RIGHT = pygame.K_RIGHT
 KEY_LEFT = pygame.K_LEFT
 KEY_QUIT = pygame.K_q
 KEY_ENTER = pygame.K_e
+KEY_RETRY = pygame.K_r
 
 TO_THE_LEFT = -1
 TO_THE_RIGHT = 1
@@ -60,6 +61,9 @@ CYPHER_IMAGE = pygame.transform.scale(CYPHER_IMAGE, (120, 100))
 
 JAKE_IMAGE = pygame.image.load("assets/images/jake.png")
 JAKE_IMAGE = pygame.transform.scale(JAKE_IMAGE, (100, 120))
+
+POTION_IMAGE = pygame.image.load("assets/images/potion.png")
+POTION_IMAGE = pygame.transform.scale(POTION_IMAGE, (80, 80))
 
 HP_BAR_SIZE = 7
 playerMaxHealth = 100
@@ -122,6 +126,8 @@ def spawn_entity(entity_type):
         return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.2, 0, CYPHER_IMAGE, 50, 0.002)
     if entity_type == "jake":
         return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.05, 0, JAKE_IMAGE, 99999, 0)
+    if entity_type == 'potion':
+        return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.2, 0, POTION_IMAGE, -10, 0)
 
 player = create_player()
 
@@ -135,6 +141,7 @@ def damage_player():
             entities.remove(entity)
             if playerHealth > 0 and playerHealth - entity["damage"] < playerMaxHealth: playerHealth -= entity["damage"]
 
+            
 def move_player(sens):
     global col_x, score
     
@@ -237,7 +244,11 @@ levels = [
             {
                 "type": "jake",
                 "spawn_rate": 100
-            }
+            },
+            {
+                "type": "potion",
+                "spawn_rate": 600
+            }   
         ]
     ),
     create_level(
@@ -256,7 +267,11 @@ levels = [
                         {
                 "type": "cypher",
                 "spawn_rate": 400
-            }
+            },
+            {
+                "type": "potion",
+                "spawn_rate": 300
+            }   
         ]
     ),
     create_level(
@@ -275,6 +290,10 @@ levels = [
                         {
                 "type": "cypher",
                 "spawn_rate": 200
+            },
+            {
+                "type": "potion",
+                "spawn_rate": 400
             }
         ]
     ),
@@ -295,6 +314,10 @@ levels = [
             {
                 "type": "cypher",
                 "spawn_rate": 100
+            },
+            {
+                "type": "potion",
+                "spawn_rate": 400
             }
         ]
     ),
@@ -333,9 +356,6 @@ def add_score(amount: int):
                 current_level = i
 
     
-
-
-
 current_level = 0
 
 ####################################################### Render #######################################################
@@ -382,16 +402,19 @@ def render_home_screen():
     global police
 
     window.fill(main_color)
+
     police_title = pygame.font.SysFont('Monospace', 60, True)
     title = police_title.render("Jump'N'Surf", True, MPOLICE_COLOR)
     title_width, title_height = police_title.size("Jump'N'Surf")
     window.blit(title, ((WINDOW_WIDTH - title_width) // 2, (WINDOW_HEIGHT - title_height) // 4))
+
     message1 = police.render("[Q]uit", True, M2POLICE_COLOR)
     message1_width, message1_height = police.size("[Q]uit")
     window.blit(message1, ((WINDOW_WIDTH - message1_width) // 2, 3 * WINDOW_HEIGHT // 5))
+
     message2 = police.render("[E]nter", True, M2POLICE_COLOR)
     message2_width, message2_height = police.size("[E]nter")
-    window.blit(message2, ((WINDOW_WIDTH - message1_width) // 2, 3 * WINDOW_HEIGHT // 5 + 1.2 * message1_height))
+    window.blit(message2, ((WINDOW_WIDTH - message2_width) // 2, 3 * WINDOW_HEIGHT // 5 + 1.2 * message2_height))
 
 def render_death_screen():
    global playerHealth, isDead, police, score
@@ -399,6 +422,7 @@ def render_death_screen():
    if playerHealth <= 0:
        isDead = True
        window.fill(main_color)
+
        police_character = pygame.font.SysFont('monospace', 24, True)
        message = police_character.render("GAME OVER", True, MPOLICE_COLOR)
        messageWidth, messageHeight = police_character.size("GAME OVER!")
@@ -493,16 +517,17 @@ isDead = False
 while not fini:
         #--- Traiter entrées joueur
         for evenement in pygame.event.get():
-            if evenement.type == pygame.QUIT:
-                exit()
-                fini = True
-            elif evenement.type == pygame.KEYDOWN:
+            if evenement.type == pygame.KEYDOWN:
                 if evenement.key == KEY_RIGHT:
                     move_player(TO_THE_RIGHT)
                 elif evenement.key == KEY_LEFT:
                     move_player(TO_THE_LEFT)
                 elif evenement.key == KEY_ENTER:
                     isInStartMenu = False
+                elif evenement.type == pygame.KEYDOWN:
+                    if evenement.key == KEY_QUIT:
+                        exit()
+                        fini = True
 
         if isInStartMenu:
             render_home_screen()
