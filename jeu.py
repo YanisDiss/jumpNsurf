@@ -411,37 +411,77 @@ def render_death_screen():
 
 ####################################################### Color animation #######################################################
 
-red=0
+red=255
 green=0
-blue=255
+blue=0
 
-rg = False
-gb = False
-br = False
+ry = False #red to yellow
+yg = False # yellow to green
+gc = False # green to cyan
+cb = False # cyan to blue
+bp = False # blue to purple
+pr = False # purple to red
 
 def animate_color(speed):
-    global main_color, red, green, blue, rg, gb, br
+    global main_color, red, green, blue, ry,yg,gc,cb,bp,pr
     if(speed == 0):
         return
     
-    if (red == 255): rg = True
-    if green == 255: gb = True
-    if blue == 255: br = True
+    # red to green
+    if (red == 255 and green < 255 and blue ==0): ry = True
+    elif (red == 255 and green == 255 and blue ==0): yg = True
 
-    if (red == 0): rg = False
-    if green ==0: gb = False
-    if blue ==0: br = False
+    if (red == 255 and green == 255 and blue ==0): ry = False
+    if (red == 0 and green == 255 and blue ==0): yg = False
+
+    # green to blue
+    if (green == 255 and blue < 255 and red == 0): gc = True
+    elif (green == 255 and blue == 255 and red == 0): cb = True
+
+    if (green == 255 and blue == 255 and red == 0): gc = False
+    if (green == 0 and blue == 255 and red == 0): cb = False
+
+    # blue to red
+    if (blue == 255 and red < 255 and green == 0): bp = True
+    elif (blue == 255 and red == 255 and green == 0): pr = True
+
+    if (blue == 255 and red == 255 and green == 0): bp = False
+    if (blue == 0 and blue == red and green == 0): pr = False
+    
 
     if (0<=red<256 and 0<=green<256 and 0<=blue<256):
-                if rg:
-                    green = min(green + speed, 255)
+                if yg:
                     red = max(red - speed, 0)
-                elif gb:
-                    blue= min(blue + speed, 255)
+                    cb = False
+                    bp = False
+                    pr = False
+                if ry:
+                    green = min(green + speed, 255)
+                    bp = False
+                    pr = False
+                    ry = False
+              
+                if cb:
                     green = max(green - speed, 0)
-                elif br:
-                    red = min(red + speed, 255)
+                    pr = False
+                    ry = False
+                    yg = False
+                if gc:
+                    blue = min(blue + speed, 255)
+                    ry = False
+                    yg = False
+                    gc = False
+
+                if pr:
                     blue = max(blue - speed, 0)
+                    yg = False
+                    gc = False
+                    cb = False
+                if bp:
+                    red = min(red + speed, 255)
+                    gc = False
+                    cb = False
+                    bp = False
 
     main_color = (red,green,blue)
 
@@ -475,7 +515,7 @@ while not fini:
             move_entity_animation(delta, player)
             damage_player()
             render_death_screen()
-            animate_color(levels[current_level]["rgb_speed"])
+            animate_color(levels[current_level]["rgb_speed"] * 2)
 
             time_elapsed += delta
 
