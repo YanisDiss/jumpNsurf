@@ -53,8 +53,8 @@ TERMINATOR_IMAGE = pygame.transform.scale(TERMINATOR_IMAGE, (80, 80))
 TERMINATOR_IMAGE = pygame.transform.rotate(TERMINATOR_IMAGE, 180)
 
 HP_BAR_SIZE = 7
-playerHealth = 100
-playerMaxHealth = 100
+playerMaxHealth = 1000000
+playerHealth = playerMaxHealth
 
 # fonctionpour creer des images
 def image(name: str, length: float, width: float, angle: float):
@@ -275,6 +275,41 @@ def end():
        score_width, score_height = score_message.get_size()
        window.blit(score_message, ((WINDOW_WIDTH - score_width) // 2, (WINDOW_HEIGHT - score_height) // 2 + 50))
 
+
+red=255
+green=0
+blue=0
+
+rg = False
+gb = False
+br = False
+
+def rgb(speed):
+    global MAIN_COLOR, red, green, blue, rg, gb, br
+    if(speed == 0):
+        return
+    
+    if (red == 255): rg = True
+    if green == 255: gb = True
+    if blue == 255: br = True
+
+    if (red == 0): rg = False
+    if green ==0: gb = False
+    if blue ==0: br = False
+
+    if (0<=red<256 and 0<=green<256 and 0<=blue<256):
+                if rg:
+                    green = min(green + speed, 255)
+                    red = max(red - speed, 0)
+                elif gb:
+                    blue= min(blue + speed, 255)
+                    green = max(green - speed, 0)
+                elif br:
+                    red = min(red + speed, 255)
+                    blue = max(blue - speed, 0)
+
+    MAIN_COLOR = (red,green,blue)
+
 isInStartMenu = True
 delai = False 
 isDead = False
@@ -282,7 +317,6 @@ isDead = False
 # déclaration du score
 score = 0
 police = pygame.font.SysFont('monospace', WINDOW_HEIGHT//12, True ) 
-
 
 while not fini:
         #--- Traiter entrées joueur
@@ -309,6 +343,7 @@ while not fini:
             move_entity_animation(delta, player)
             enemies()
             end()
+            rgb(10)
 
             time_elapsed += delta
 
