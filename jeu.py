@@ -81,9 +81,9 @@ def image(name: str, length: float, width: float, angle: float):
 pygame.init()
 
 pygame.mixer.init()
-damageSound = pygame.mixer.Sound("assets/audio/perfect-fart.mp3")
+damageSound = pygame.mixer.Sound("assets/audio/hurt.mp3")
 
-pygame_icon = pygame.image.load('assets/images/image.png')
+pygame_icon = pygame.image.load('assets/images/icon.png')
 pygame.display.set_icon(pygame_icon)
 
 windowDimensions = (WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -401,12 +401,12 @@ def render_home_screen():
     title_width, title_height = police_title.size("Jump'N'Surf")
     window.blit(title, ((WINDOW_WIDTH - title_width) // 2, (WINDOW_HEIGHT - title_height) // 4))
 
-    message1 = police.render("[Q]uit", True, M2POLICE_COLOR)
-    message1_width, message1_height = police.size("[Q]uit")
+    message1 = police.render("[E]nter", True, M2POLICE_COLOR)
+    message1_width, message1_height = police.size("[E]nter")
     window.blit(message1, ((WINDOW_WIDTH - message1_width) // 2, 3 * WINDOW_HEIGHT // 5))
 
-    message2 = police.render("[E]nter", True, M2POLICE_COLOR)
-    message2_width, message2_height = police.size("[E]nter")
+    message2 = police.render("[Q]uit", True, M2POLICE_COLOR)
+    message2_width, message2_height = police.size("[Q]uit")
     window.blit(message2, ((WINDOW_WIDTH - message2_width) // 2, 3 * WINDOW_HEIGHT // 5 + 1.2 * message2_height))
 
 def render_death_screen():
@@ -425,6 +425,18 @@ def render_death_screen():
        score_message = police_character.render(f"Score : {score} ", True, SCORE_COLOR)
        score_width, score_height = score_message.get_size()
        window.blit(score_message, ((WINDOW_WIDTH - score_width) // 2, (WINDOW_HEIGHT - score_height) // 2 + 50))
+    
+       retry_message = police_character.render("[R]etry", True, MPOLICE_COLOR)
+       retry_width, retry_height = retry_message.get_size()
+       window.blit(retry_message, ((WINDOW_WIDTH - retry_width) // 2, (WINDOW_HEIGHT - retry_height) // 2 + 100))       
+
+def reset():
+    global playerHealth, score, isDead, isInStartMenu
+    score = 0
+    playerHealth = playerMaxHealth
+    isDead = False
+    isInStartMenu = False 
+
 
 ####################################################### Color animation #######################################################
 
@@ -510,17 +522,23 @@ isDead = False
 while not fini:
         #--- Traiter entrées joueur
         for evenement in pygame.event.get():
-            if evenement.type == pygame.KEYDOWN:
+            if evenement.type == pygame.QUIT:
+                exit()
+                fini = True
+            elif evenement.type == pygame.KEYDOWN:
                 if evenement.key == KEY_RIGHT:
                     move_player(TO_THE_RIGHT)
                 elif evenement.key == KEY_LEFT:
                     move_player(TO_THE_LEFT)
                 elif evenement.key == KEY_ENTER:
                     isInStartMenu = False
-                elif evenement.type == pygame.KEYDOWN:
-                    if evenement.key == KEY_QUIT:
-                        exit()
-                        fini = True
+                elif evenement.key == KEY_QUIT:
+                    exit()
+                    fini = True
+                elif evenement.key == KEY_RETRY:
+                    if isDead == True:
+                        pygame.time.delay(3000)
+                        reset()
 
         if isInStartMenu:
             render_home_screen()
