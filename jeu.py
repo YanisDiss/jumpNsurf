@@ -259,7 +259,7 @@ levels = [
             },
             {
                 "type": "potion",
-                "spawn_rate": 300
+                "spawn_rate": 400
             }   
         ]
     ),
@@ -372,7 +372,7 @@ def draw_hp():
 
 def draw_score():
     marquoir = police.render(str(score), True, SCORE_COLOR)
-    window.blit(marquoir, (WINDOW_WIDTH / 2, WINDOW_HEIGHT // 10))
+    window.blit(marquoir, marquoir.get_rect(center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT // 10)))
 
 
 def draw_game():
