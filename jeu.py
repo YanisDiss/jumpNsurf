@@ -80,6 +80,9 @@ def image(name: str, length: float, width: float, angle: float):
 
 pygame.init()
 
+pygame.mixer.init()
+damageSound = pygame.mixer.Sound("assets/audio/perfect-fart.mp3")
+
 pygame_icon = pygame.image.load('assets/images/image.png')
 pygame.display.set_icon(pygame_icon)
 
@@ -139,6 +142,7 @@ def damage_player():
         th = 80
         if (entity["damage"] != 0 and (player["y"] <= entity["y"] + 30 and entity["y"] + th <= WINDOW_HEIGHT) and player["col"] == entity["col"]):
             entities.remove(entity)
+            damageSound.play()
             if playerHealth > 0 and playerHealth - entity["damage"] < playerMaxHealth: playerHealth -= entity["damage"]
 
             
@@ -520,7 +524,7 @@ while not fini:
 
         if isInStartMenu:
             render_home_screen()
-            animate_color(1)
+            animate_color(.05)
         else:
             #--- 60 images par seconde
             delta = temps.tick(60)
