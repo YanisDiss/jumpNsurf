@@ -127,7 +127,7 @@ def spawn_entity(entity_type):
     if entity_type == "jake":
         return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.05, 0, JAKE_IMAGE, 99999, 0)
     if entity_type == 'potion':
-        return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.2, 0, POTION_IMAGE, -10, 0)
+        return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.2, 0, POTION_IMAGE, -50, 0)
 
 player = create_player()
 
@@ -237,18 +237,7 @@ levels = [
                 "type": "terminator",
                 "spawn_rate": 50
             },
-            {
-                "type": "cypher",
-                "spawn_rate": 600
-            },
-            {
-                "type": "jake",
-                "spawn_rate": 100
-            },
-            {
-                "type": "potion",
-                "spawn_rate": 600
-            }   
+              
         ]
     ),
     create_level(
@@ -263,10 +252,6 @@ levels = [
             {
                 "type": "spike_ball",
                 "spawn_rate": 100
-            },
-                        {
-                "type": "cypher",
-                "spawn_rate": 400
             },
             {
                 "type": "potion",
@@ -328,15 +313,19 @@ levels = [
         [
             {
                 "type": "terminator",
-                "spawn_rate": 10
+                "spawn_rate": 100
             },
             {
                 "type": "spike_ball",
-                "spawn_rate": 25
+                "spawn_rate": 50
             },
-                        {
+            {
                 "type": "cypher",
                 "spawn_rate": 50
+            },
+            {   
+                "type": "jake",
+                "spawn_rate": 200
             }
         ]
     ),
@@ -531,6 +520,7 @@ while not fini:
 
         if isInStartMenu:
             render_home_screen()
+            animate_color(1)
         else:
             #--- 60 images par seconde
             delta = temps.tick(60)
