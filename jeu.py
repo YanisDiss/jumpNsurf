@@ -69,7 +69,7 @@ HP_BAR_SIZE = 7
 playerMaxHealth = 100
 playerHealth = playerMaxHealth
 
-main_color = (153, 164,   242)
+main_color = (0,255,255)
 
 # fonctionpour creer des images
 def image(name: str, length: float, width: float, angle: float):
@@ -431,18 +431,22 @@ def render_death_screen():
        window.blit(retry_message, ((WINDOW_WIDTH - retry_width) // 2, (WINDOW_HEIGHT - retry_height) // 2 + 100))       
 
 def reset():
-    global playerHealth, score, isDead, isInStartMenu
+    global playerHealth, score, isDead, isInStartMenu, entities, current_level, time_elapsed
+    entities = []
     score = 0
     playerHealth = playerMaxHealth
     isDead = False
-    isInStartMenu = False 
+    isInStartMenu = False
+    time_elapsed = 0
+    current_level = 0
+    
 
 
 ####################################################### Color animation #######################################################
 
-red=255
-green=0
-blue=0
+red=main_color[0]
+green=main_color[1]
+blue=main_color[2]
 
 ry = False #red to yellow
 yg = False # yellow to green
@@ -537,12 +541,10 @@ while not fini:
                     fini = True
                 elif evenement.key == KEY_RETRY:
                     if isDead == True:
-                        pygame.time.delay(3000)
                         reset()
 
         if isInStartMenu:
             render_home_screen()
-            animate_color(.05)
         else:
             #--- 60 images par seconde
             delta = temps.tick(60)
