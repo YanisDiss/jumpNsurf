@@ -243,7 +243,7 @@ levels = [
     ),
     create_level(
         7,
-        50,
+        20,
         1,
         [
             {
@@ -262,7 +262,7 @@ levels = [
     ),
     create_level(
         7,
-        100,
+        50,
         5,
         [
             {
@@ -285,7 +285,7 @@ levels = [
     ),
     create_level(
         7,
-        150,
+        100,
         10,
         [
             {
@@ -309,7 +309,7 @@ levels = [
     ),
     create_level(
         7,
-        200,
+        150,
         20,
         [
             {
