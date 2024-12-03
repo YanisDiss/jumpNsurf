@@ -143,18 +143,16 @@ def damage_player():
         if (entity["damage"] != 0 and (player["y"] <= entity["y"] + 30 and entity["y"] + th <= WINDOW_HEIGHT) and player["col"] == entity["col"]):
             entities.remove(entity)
             damageSound.play()
-            if playerHealth > 0 and playerHealth - entity["damage"] < playerMaxHealth: playerHealth -= entity["damage"]
+            playerHealth = min(playerHealth - entity["damage"], playerMaxHealth)
 
             
 def move_player(sens):
-    global col_x, score
+    global col_x
     
     if((player["col"] <= 1 and sens == TO_THE_LEFT) or (player["col"] >= COL_NUMBERS - 2 and sens == TO_THE_RIGHT)):
         return
 
     player["col"] += sens
-
-    add_score(1)
 
 def draw_entities():
     for entity in entities:
@@ -208,9 +206,8 @@ def move_entities(delta):
                 entity["col"] += random.randrange(-1, 2, 2)
         
         move_entity_animation(delta, entity)
-        
-
-        if(entity["y"] > WINDOW_HEIGHT):
+        if entity["y"] > WINDOW_HEIGHT:
+            add_score(1)
             entities.remove(entity)
 
 def spawn_entities():
@@ -439,8 +436,18 @@ def reset():
     isInStartMenu = False
     time_elapsed = 0
     current_level = 0
-    
 
+def interval(phase_number):
+    global police
+
+    window.fill(main_color)
+    message = police.render(f"Phase {phase_number}", True, M2POLICE_COLOR)
+    messageWidth, messageHeight = police.size(f"Phase {phase_number}")
+    window.blit(message, ((WINDOW_WIDTH - messageWidth) // 2, (WINDOW_HEIGHT - messageHeight) // 2))
+    pygame.display.flip()
+    pygame.time.wait(2000)
+
+interval(1)
 
 ####################################################### Color animation #######################################################
 
@@ -522,6 +529,7 @@ def animate_color(speed):
 
 isInStartMenu = True
 isDead = False
+previous_level = 0
 
 while not fini:
         #--- Traiter entrées joueur
@@ -545,7 +553,12 @@ while not fini:
 
         if isInStartMenu:
             render_home_screen()
+        
         else:
+            if current_level != previous_level:
+                interval(current_level+1)
+                previous_level = current_level
+
             #--- 60 images par seconde
             delta = temps.tick(60)
             draw_game()
