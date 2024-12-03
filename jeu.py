@@ -81,7 +81,7 @@ def image(name: str, length: float, width: float, angle: float):
 pygame.init()
 
 pygame.mixer.init()
-damageSound = pygame.mixer.Sound("assets/audio/hurt.mp3")
+damageSound = pygame.mixer.Sound("assets/audio/explosion.mp3")
 
 pygame_icon = pygame.image.load('assets/images/icon.png')
 pygame.display.set_icon(pygame_icon)
@@ -263,7 +263,7 @@ levels = [
     create_level(
         7,
         100,
-        10,
+        5,
         [
             {
                 "type": "terminator",
@@ -286,7 +286,7 @@ levels = [
     create_level(
         7,
         150,
-        30,
+        10,
         [
             {
                 "type": "terminator",
@@ -310,7 +310,7 @@ levels = [
     create_level(
         7,
         200,
-        50,
+        20,
         [
             {
                 "type": "terminator",
