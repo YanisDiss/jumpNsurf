@@ -41,6 +41,8 @@ KEY_LEFT = pygame.K_LEFT
 KEY_QUIT = pygame.K_q
 KEY_ENTER = pygame.K_e
 KEY_RETRY = pygame.K_r
+KEY_PAUSE = pygame.K_p
+KEY_UNPAUSE = pygame.K_ESCAPE
 
 TO_THE_LEFT = -1
 TO_THE_RIGHT = 1
@@ -335,6 +337,7 @@ levels = [
 def add_score(amount: int):
     global score, current_level
     score += amount
+    prev_level = current_level
 
     for i in range(len(levels)):
         if levels[i]["required_score"] <= score:
@@ -344,6 +347,9 @@ def add_score(amount: int):
 
             if levels[i + 1]["required_score"] > score:
                 current_level = i
+
+    if prev_level != current_level:
+        display_level_up_text(current_level)
 
     
 current_level = 0
@@ -437,17 +443,29 @@ def reset():
     time_elapsed = 0
     current_level = 0
 
-def interval(phase_number):
+def display_level_up_text(current_level):
     global police
 
-    window.fill(main_color)
-    message = police.render(f"Phase {phase_number}", True, M2POLICE_COLOR)
-    messageWidth, messageHeight = police.size(f"Phase {phase_number}")
+    message = police.render(f"Phase {current_level}", True, SCORE_COLOR)
+    messageWidth, messageHeight = police.size(f"Phase {current_level}")
     window.blit(message, ((WINDOW_WIDTH - messageWidth) // 2, (WINDOW_HEIGHT - messageHeight) // 2))
-    pygame.display.flip()
-    pygame.time.wait(2000)
 
-interval(1)
+display_level_up_text(1)
+
+def pausef():
+    global police, pause
+
+    pause = True
+    window.fill(main_color)
+
+    retry_message = police.render("[P]ause", True, MPOLICE_COLOR)
+    retry_width, retry_height = retry_message.get_size()
+    window.blit(retry_message, ((WINDOW_WIDTH - retry_width) // 2, (WINDOW_HEIGHT - retry_height) // 2))
+
+    un_pause_message = police.render("[E]chap", True, M2POLICE_COLOR)
+    un_pause_message_width, un_pause_message2_height = police.size("[Q]uit")
+    window.blit(un_pause_message, ((WINDOW_WIDTH - un_pause_message_width) // 2, 3 * WINDOW_HEIGHT // 5 + 1.2 * message2_height))
+    pygame.display.flip()
 
 ####################################################### Color animation #######################################################
 
@@ -529,7 +547,7 @@ def animate_color(speed):
 
 isInStartMenu = True
 isDead = False
-previous_level = 0
+pause = False
 
 while not fini:
         #--- Traiter entrées joueur
@@ -550,16 +568,24 @@ while not fini:
                 elif evenement.key == KEY_RETRY:
                     if isDead == True:
                         reset()
+                elif evenement.key == KEY_PAUSE:
+                    pause = True
+                elif evenement.key == KEY_UNPAUSE:
+                    pause = False
+                        
+
+
+
 
         if isInStartMenu:
             render_home_screen()
         
-        else:
-            if current_level != previous_level:
-                interval(current_level+1)
-                previous_level = current_level
+        elif pause:
+            pausef()
 
             #--- 60 images par seconde
+        else :
+
             delta = temps.tick(60)
             draw_game()
             move_entities(delta)
