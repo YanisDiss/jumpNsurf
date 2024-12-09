@@ -84,9 +84,12 @@ pygame.init()
 
 pygame.mixer.init()
 damageSound = pygame.mixer.Sound("assets/audio/explosion.mp3")
+healSound = pygame.mixer.Sound("assets/audio/wet-fart.mp3")
 
 pygame_icon = pygame.image.load('assets/images/icon.png')
 pygame.display.set_icon(pygame_icon)
+
+pygame.display.set_caption("Jump'N'Surf")
 
 windowDimensions = (WINDOW_WIDTH, WINDOW_HEIGHT)
 window = pygame.display.set_mode(windowDimensions)
@@ -144,10 +147,13 @@ def damage_player():
         th = 80
         if (entity["damage"] != 0 and (player["y"] <= entity["y"] + 30 and entity["y"] + th <= WINDOW_HEIGHT) and player["col"] == entity["col"]):
             entities.remove(entity)
-            damageSound.play()
+            if(entity["damage"] > 0):
+                damageSound.play()
+            else:
+                healSound.play()
             playerHealth = min(playerHealth - entity["damage"], playerMaxHealth)
 
-            
+
 def move_player(sens):
     global col_x
     
@@ -402,7 +408,7 @@ def render_home_screen():
     police_title = pygame.font.SysFont('Monospace', 60, True)
     title = police_title.render("Jump'N'Surf", True, MPOLICE_COLOR)
     title_width, title_height = police_title.size("Jump'N'Surf")
-    window.blit(title, ((WINDOW_WIDTH - title_width) // 2, (WINDOW_HEIGHT - title_height) // 4))
+    window.blit(title, ((WINDOW_WIDTH - title_width) // 2, (WINDOW_HEIGHT - title_height) // 3))
 
     message1 = police.render("[E]nter", True, M2POLICE_COLOR)
     message1_width, message1_height = police.size("[E]nter")
@@ -418,20 +424,20 @@ def render_death_screen():
    if playerHealth <= 0:
        isDead = True
        window.fill(main_color)
-
+       
        police_character = pygame.font.SysFont('monospace', 24, True)
-       message = police_character.render("GAME OVER", True, MPOLICE_COLOR)
-       messageWidth, messageHeight = police_character.size("GAME OVER!")
-       window.blit(message, ((WINDOW_WIDTH - messageWidth) // 2, (WINDOW_HEIGHT - messageHeight) // 2))
+       message = police_character.render("GAME OVER!", True, MPOLICE_COLOR)
+       messageWidth, messageHeight = message.get_size()
+       window.blit(message, ((WINDOW_WIDTH - messageWidth) // 2, (WINDOW_HEIGHT - messageHeight) // 2 - 25))
 
        # Afficher le score final
        score_message = police_character.render(f"Score : {score} ", True, SCORE_COLOR)
        score_width, score_height = score_message.get_size()
-       window.blit(score_message, ((WINDOW_WIDTH - score_width) // 2, (WINDOW_HEIGHT - score_height) // 2 + 50))
+       window.blit(score_message, ((WINDOW_WIDTH - score_width) // 2, (WINDOW_HEIGHT - score_height) // 2 + 25))
     
        retry_message = police_character.render("[R]etry", True, MPOLICE_COLOR)
        retry_width, retry_height = retry_message.get_size()
-       window.blit(retry_message, ((WINDOW_WIDTH - retry_width) // 2, (WINDOW_HEIGHT - retry_height) // 2 + 100))       
+       window.blit(retry_message, ((WINDOW_WIDTH - retry_width) // 2, (WINDOW_HEIGHT - retry_height) // 2 + 75))   
 
 def reset():
     global playerHealth, score, isDead, isInStartMenu, entities, current_level, time_elapsed
@@ -444,11 +450,14 @@ def reset():
     current_level = 0
 
 def display_level_up_text(current_level):
-    global police
+    global police, entities
 
     message = police.render(f"Phase {current_level}", True, SCORE_COLOR)
     messageWidth, messageHeight = police.size(f"Phase {current_level}")
     window.blit(message, ((WINDOW_WIDTH - messageWidth) // 2, (WINDOW_HEIGHT - messageHeight) // 2))
+
+    pygame.display.flip()
+    pygame.time.wait(2000)
 
 display_level_up_text(1)
 
@@ -460,11 +469,11 @@ def pausef():
 
     retry_message = police.render("[P]ause", True, MPOLICE_COLOR)
     retry_width, retry_height = retry_message.get_size()
-    window.blit(retry_message, ((WINDOW_WIDTH - retry_width) // 2, (WINDOW_HEIGHT - retry_height) // 2))
+    window.blit(retry_message, ((WINDOW_WIDTH - retry_width) // 2, (WINDOW_HEIGHT - retry_height) // 2 - 30))
 
     un_pause_message = police.render("[E]chap", True, M2POLICE_COLOR)
-    un_pause_message_width, un_pause_message2_height = police.size("[Q]uit")
-    window.blit(un_pause_message, ((WINDOW_WIDTH - un_pause_message_width) // 2, 3 * WINDOW_HEIGHT // 5 + 1.2 * message2_height))
+    un_pause_message_width, un_pause_message_height = un_pause_message.get_size()
+    window.blit(un_pause_message, ((WINDOW_WIDTH - un_pause_message_width) // 2, (WINDOW_HEIGHT - un_pause_message_height) // 2 + 30))
     pygame.display.flip()
 
 ####################################################### Color animation #######################################################
@@ -548,6 +557,7 @@ def animate_color(speed):
 isInStartMenu = True
 isDead = False
 pause = False
+game_over = False 
 
 while not fini:
         #--- Traiter entrées joueur
@@ -573,10 +583,6 @@ while not fini:
                 elif evenement.key == KEY_UNPAUSE:
                     pause = False
                         
-
-
-
-
         if isInStartMenu:
             render_home_screen()
         
@@ -584,6 +590,9 @@ while not fini:
             pausef()
 
             #--- 60 images par seconde
+
+        elif isDead:
+            render_death_screen
         else :
 
             delta = temps.tick(60)
