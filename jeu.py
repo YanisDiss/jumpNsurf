@@ -83,8 +83,8 @@ def image(name: str, length: float, width: float, angle: float):
 pygame.init()
 
 pygame.mixer.init()
-damageSound = pygame.mixer.Sound("assets/audio/explosion.mp3")
-healSound = pygame.mixer.Sound("assets/audio/wet-fart.mp3")
+damageSound = pygame.mixer.Sound("assets/audio/hurt.mp3")
+healSound = pygame.mixer.Sound("assets/audio/potion1.mp3")
 
 pygame_icon = pygame.image.load('assets/images/icon.png')
 pygame.display.set_icon(pygame_icon)
@@ -453,11 +453,11 @@ def display_level_up_text(current_level):
     global police, entities
 
     message = police.render(f"Phase {current_level}", True, SCORE_COLOR)
-    messageWidth, messageHeight = police.size(f"Phase {current_level}")
+    messageWidth, messageHeight = message.get_size()
     window.blit(message, ((WINDOW_WIDTH - messageWidth) // 2, (WINDOW_HEIGHT - messageHeight) // 2))
 
     pygame.display.flip()
-    pygame.time.wait(2000)
+    pygame.time.wait(1500)
 
 display_level_up_text(1)
 
