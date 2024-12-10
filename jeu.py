@@ -85,6 +85,7 @@ def image(name: str, length: float, width: float, angle: float):
 pygame.mixer.init()
 damageSound = pygame.mixer.Sound("assets/audio/hurt.mp3")
 healSound = pygame.mixer.Sound("assets/audio/potion1.mp3")
+#pygame.mixer.music.play(loops=-1, start=0.0)
 
 pygame_icon = pygame.image.load('assets/images/icon.png')
 pygame.display.set_icon(pygame_icon)
