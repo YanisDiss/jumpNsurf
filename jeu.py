@@ -17,6 +17,8 @@ test
 import pygame
 import random
 
+pygame.init()
+
 ####################################################### Initialization #######################################################
 BG_COLOR  = (  21, 21, 21)
 SCORE_COLOR = (255, 255, 255)
@@ -47,9 +49,6 @@ KEY_UNPAUSE = pygame.K_ESCAPE
 TO_THE_LEFT = -1
 TO_THE_RIGHT = 1
 
-SANIC_IMAGE = pygame.image.load("assets/images/sanic.png")
-SANIC_IMAGE = pygame.transform.scale(SANIC_IMAGE, (50, 50))
-
 TERMINATOR_IMAGE = pygame.image.load("assets/images/terminator.png")
 TERMINATOR_IMAGE = pygame.transform.scale(TERMINATOR_IMAGE, (80, 80))
 TERMINATOR_IMAGE = pygame.transform.rotate(TERMINATOR_IMAGE, 180)
@@ -67,6 +66,9 @@ JAKE_IMAGE = pygame.transform.scale(JAKE_IMAGE, (100, 120))
 POTION_IMAGE = pygame.image.load("assets/images/potion.png")
 POTION_IMAGE = pygame.transform.scale(POTION_IMAGE, (80, 80))
 
+MENU_MUSIC = pygame.mixer.music.load("assets/audio/menu-music.mp3")
+pygame.mixer.music.play()
+
 HP_BAR_SIZE = 7
 playerMaxHealth = 100
 playerHealth = playerMaxHealth
@@ -79,8 +81,6 @@ def image(name: str, length: float, width: float, angle: float):
     img = pygame.transform.scale(img, (length, width))
     img = pygame.transform.rotate(img, angle)
     return img
-
-pygame.init()
 
 pygame.mixer.init()
 damageSound = pygame.mixer.Sound("assets/audio/hurt.mp3")
@@ -335,6 +335,10 @@ levels = [
             {   
                 "type": "jake",
                 "spawn_rate": 200
+            },
+            {
+                "type": "potion",
+                "spawn_rate": 200
             }
         ]
     ),
@@ -355,7 +359,7 @@ def add_score(amount: int):
                 current_level = i
 
     if prev_level != current_level:
-        display_level_up_text(current_level)
+        display_level_up_text()
 
     
 current_level = 0
@@ -396,6 +400,8 @@ def draw_game():
     draw_entities()
 
     draw_score()
+
+    draw_level_up_text()
 
 score = 0
 police = pygame.font.SysFont('monospace', WINDOW_HEIGHT//12, True ) 
@@ -449,17 +455,30 @@ def reset():
     time_elapsed = 0
     current_level = 0
 
-def display_level_up_text(current_level):
-    global police, entities
 
-    message = police.render(f"Phase {current_level}", True, SCORE_COLOR)
+level_up_display_timer = 0
+
+def draw_level_up_text():
+    if level_up_display_timer <= 0:
+        return
+
+    global police, entities, current_level
+
+    message = police.render(f"Phase {current_level + 1}", True, SCORE_COLOR)
     messageWidth, messageHeight = message.get_size()
     window.blit(message, ((WINDOW_WIDTH - messageWidth) // 2, (WINDOW_HEIGHT - messageHeight) // 2))
+    
+def update_level_up_text_counter(delta):
+    global level_up_display_timer
 
-    pygame.display.flip()
-    pygame.time.wait(1500)
+    if level_up_display_timer > 0:
+        level_up_display_timer -= delta
 
-display_level_up_text(1)
+def display_level_up_text():
+    global level_up_display_timer
+    level_up_display_timer = 3000
+
+display_level_up_text()
 
 def pausef():
     global police, pause
@@ -603,6 +622,7 @@ while not fini:
             damage_player()
             render_death_screen()
             animate_color(levels[current_level]["rgb_speed"] * 2)
+            update_level_up_text_counter(delta)
 
             time_elapsed += delta
 
