@@ -1,25 +1,11 @@
-"""
--------- ESPACE COMMENTAIRE --------
-
-
-
-
-
-
-test
-
-
-
-
-------------------------------------
-"""
-
 import pygame
 import random
 
 pygame.init()
 
 ####################################################### Initialization #######################################################
+
+#### CONSTANTES ####
 BG_COLOR  = (  21, 21, 21)
 SCORE_COLOR = (255, 255, 255)
 MENU_COLOR = (56, 82, 128)
@@ -66,29 +52,26 @@ JAKE_IMAGE = pygame.transform.scale(JAKE_IMAGE, (100, 120))
 POTION_IMAGE = pygame.image.load("assets/images/potion.png")
 POTION_IMAGE = pygame.transform.scale(POTION_IMAGE, (80, 80))
 
+# Partie musique du jeu
 MENU_MUSIC = pygame.mixer.music.load("assets/audio/menu-music.mp3")
-pygame.mixer.music.play()
+
+pygame.mixer.music.play(loops=-1)
 
 HP_BAR_SIZE = 7
+
+
 playerMaxHealth = 100
 playerHealth = playerMaxHealth
 
-main_color = (0,255,255)
-
-# fonctionpour creer des images
-def image(name: str, length: float, width: float, angle: float):
-    img = pygame.image.load("assets/images/" + name + ".png")
-    img = pygame.transform.scale(img, (length, width))
-    img = pygame.transform.rotate(img, angle)
-    return img
+mainColor = (0,255,255)
 
 pygame.mixer.init()
 damageSound = pygame.mixer.Sound("assets/audio/hurt.mp3")
 healSound = pygame.mixer.Sound("assets/audio/potion1.mp3")
 #pygame.mixer.music.play(loops=-1, start=0.0)
 
-pygame_icon = pygame.image.load('assets/images/icon.png')
-pygame.display.set_icon(pygame_icon)
+pygameIcon = pygame.image.load('assets/images/icon.png')
+pygame.display.set_icon(pygameIcon)
 
 pygame.display.set_caption("Jump'N'Surf")
 
@@ -96,16 +79,22 @@ windowDimensions = (WINDOW_WIDTH, WINDOW_HEIGHT)
 window = pygame.display.set_mode(windowDimensions)
 
 window.fill(BG_COLOR)
-fini = False
+window_stopped = False
 temps = pygame.time.Clock()
-time_elapsed = 0
+timeElapsed = 0
+
+####################################################### Utils #######################################################
 
 def col_to_pos(col):
     return int(col * COL_SIZE + COL_SIZE / 2)
 
 ####################################################### Entities #######################################################
 
-def create_entity(col: int, y: int, velocity: float, acceleration: float, skin, damage: int, sike_probability = 0, sike_speed = 1):
+def create_entity(col: int, y: int, velocity: float, acceleration: float, skin, damage: int, sike_probability: float = 0, sike_speed: float = 1):
+    """
+    Crée un dictionnaire représentant une entitée
+    """
+
     entity = {
         "col": col,
         "x": col_to_pos(col),
@@ -124,9 +113,17 @@ def create_entity(col: int, y: int, velocity: float, acceleration: float, skin, 
     return entity
 
 def create_player():
+    """
+    Crée l'entitée joueur
+    """
+
     return create_entity(COL_NUMBERS // 2, 500, 1, 0, None, 0.0, 0)
 
-def spawn_entity(entity_type):
+def spawn_entity(entity_type: str):
+    """
+    Spawn une entitée en fonction de son type
+    """
+    
     if entity_type == "terminator":
         return create_entity(random.randint(1,COL_NUMBERS -2), -100, 0.5, 0, TERMINATOR_IMAGE, 5, 0, .5)
     if entity_type == "spike_ball":
@@ -142,7 +139,11 @@ player = create_player()
 
 entities = []
 
-def damage_player():
+def collide_player():
+    """
+    Appelé pour detecter les entitiées qui rentrent en collision avec le joueur
+
+    """
     global player, playerHealth
     for entity in entities:
         th = 80
@@ -156,6 +157,10 @@ def damage_player():
 
 
 def move_player(sens):
+    """
+    Déplace le joueur d'une colone en fonction du sens.
+    """
+    
     global col_x
     
     if((player["col"] <= 1 and sens == TO_THE_LEFT) or (player["col"] >= COL_NUMBERS - 2 and sens == TO_THE_RIGHT)):
@@ -164,10 +169,18 @@ def move_player(sens):
     player["col"] += sens
 
 def draw_entities():
+    """
+    Dessine les entitées à l'écran
+    """
+
     for entity in entities:
         window.blit(entity["skin"], (entity["x"], entity["y"]))
 
 def move_entity_animation(delta_t, entity):
+    """
+    Animation du mouvement des entitiées sur le côté
+    """
+
     goal = col_to_pos(entity["col"])
 
     skin = entity["skin"]
@@ -180,14 +193,6 @@ def move_entity_animation(delta_t, entity):
         return
 
     delta_x = goal - entity["x"]
-
-    """
-    j'ai reussi a fix le stroke mais il faut
-    encore que j'arrive a faire en sorte que sa position
-    X ne soit pas offset quand j'arrive au goal
-    (mets la vitesse plus forte = ce que je veux dire sera plus visible)
-    
-    """
 
     if(delta_x > threshold): # si il se deplace a droite
         if(entity["x"] > goal):
@@ -202,6 +207,10 @@ def move_entity_animation(delta_t, entity):
             entity["x"] -= entity["sike_speed"] * delta_t
 
 def move_entities(delta):
+    """
+    Déplace toute les entitées en fonction du temps
+    """
+
     for entity in entities:
         entity["velocity"] += entity["acceleration"] * delta
         entity["y"] += entity["velocity"] * delta
@@ -220,14 +229,21 @@ def move_entities(delta):
             entities.remove(entity)
 
 def spawn_entities():
+    """
+    Génère les entitiées en fonction du niveau et du spawn rate à chaque tick
+    """
+
     for entity_type in levels[current_level]["entities"]:
-        if time_elapsed % entity_type["spawn_rate"] == 0:
+        if timeElapsed % entity_type["spawn_rate"] == 0:
             entities.append(spawn_entity(entity_type["type"]))
 
 ####################################################### Level #######################################################
 
 
 def create_level(col_amount: int, required_score: int, rgb_speed, entities: list):
+    """
+    Crée un level
+    """
     return {
         "required_score": required_score,
         "col_amount": col_amount,
@@ -346,6 +362,10 @@ levels = [
 ]
 
 def add_score(amount: int):
+    """
+    Ajoute du score et augmente le niveau si besoin
+    """
+
     global score, current_level
     score += amount
     prev_level = current_level
@@ -371,25 +391,42 @@ def draw_borders():
     """
     Dessine les bords
     """
-    pygame.draw.rect(window, main_color, ((0, 0), (COL_SIZE, WINDOW_HEIGHT)))
-    pygame.draw.rect(window, main_color, ((WINDOW_WIDTH - COL_SIZE, 0), (COL_SIZE, WINDOW_HEIGHT)))
+
+    pygame.draw.rect(window, mainColor, ((0, 0), (COL_SIZE, WINDOW_HEIGHT)))
+    pygame.draw.rect(window, mainColor, ((WINDOW_WIDTH - COL_SIZE, 0), (COL_SIZE, WINDOW_HEIGHT)))
 
 def draw_player():
-    pygame.draw.rect(window, main_color, (
+    """
+    Dessine le joueur
+    """
+    
+    pygame.draw.rect(window, mainColor, (
     (player["x"] - PLAYER_SIZE/2, player["y"]), # pour qu'il soit a l'exact milieu de l'ecran
     PLAYER_SIZE_2), 
     16, 3) #pour les bord arrondis et l'outlineµ
     
 def draw_hp():
+    """
+    Dessine le texte des HP
+    """
+    
     pygame.draw.rect(window, (255,0,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE, HP_BAR_SIZE)), 0, 3)
     pygame.draw.rect(window, (0,255,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE / playerMaxHealth * playerHealth, HP_BAR_SIZE)),0,3)
 
 def draw_score():
+    """
+    Dessine le texte du score
+    """
+    
     marquoir = police.render(str(score), True, SCORE_COLOR)
     window.blit(marquoir, marquoir.get_rect(center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT // 10)))
 
 
 def draw_game():
+    """
+    Dessine le jeu
+    """
+
     window.fill(BG_COLOR)
 
     draw_borders()
@@ -407,10 +444,14 @@ def draw_game():
 score = 0
 police = pygame.font.SysFont('monospace', WINDOW_HEIGHT//12, True ) 
 
-def render_home_screen():
+def draw_home_screen():
+    """
+    Dessine l'écran d'acceuil du jeu
+    """
+    
     global police
 
-    window.fill(main_color)
+    window.fill(mainColor)
 
     police_title = pygame.font.SysFont('Monospace', 60, True)
     title = police_title.render("Jump'N'Surf", True, MPOLICE_COLOR)
@@ -425,12 +466,16 @@ def render_home_screen():
     message2_width, message2_height = police.size("[Q]uit")
     window.blit(message2, ((WINDOW_WIDTH - message2_width) // 2, 3 * WINDOW_HEIGHT // 5 + 1.2 * message2_height))
 
-def render_death_screen():
-   global playerHealth, isDead, police, score
+def draw_death_screen():
+    """
+    dessine l'écran de mort
+    """
 
-   if playerHealth <= 0:
+    global playerHealth, isDead, police, score
+
+    if playerHealth <= 0:
        isDead = True
-       window.fill(main_color)
+       window.fill(mainColor)
        
        police_character = pygame.font.SysFont('monospace', 24, True)
        message = police_character.render("GAME OVER!", True, MPOLICE_COLOR)
@@ -447,19 +492,27 @@ def render_death_screen():
        window.blit(retry_message, ((WINDOW_WIDTH - retry_width) // 2, (WINDOW_HEIGHT - retry_height) // 2 + 75))   
 
 def reset():
-    global playerHealth, score, isDead, isInStartMenu, entities, current_level, time_elapsed
+    """
+    Réinitalise l'état
+    """
+
+    global playerHealth, score, isDead, isInStartMenu, entities, current_level, timeElapsed
     entities = []
     score = 0
     playerHealth = playerMaxHealth
     isDead = False
     isInStartMenu = False
-    time_elapsed = 0
+    timeElapsed = 0
     current_level = 0
 
 
 level_up_display_timer = 0
 
 def draw_level_up_text():
+    """
+    Dessine le texte de changement de niveau
+    """
+
     if level_up_display_timer <= 0:
         return
 
@@ -470,22 +523,34 @@ def draw_level_up_text():
     window.blit(message, ((WINDOW_WIDTH - messageWidth) // 2, (WINDOW_HEIGHT - messageHeight) // 2))
     
 def update_level_up_text_counter(delta):
+    """
+    Met a jour le compteur pour le texte de level up a afficher
+    """
+
     global level_up_display_timer
 
     if level_up_display_timer > 0:
         level_up_display_timer -= delta
 
 def display_level_up_text():
+    """
+    Fait apparaitre le texte de level up pendant 3 secondes
+    """
+
     global level_up_display_timer
     level_up_display_timer = 3000
 
 display_level_up_text()
 
-def pausef():
-    global police, pause
+def draw_paused_game():
+    """
+    Met le jeu en pause
+    """
 
-    pause = True
-    window.fill(main_color)
+    global police, inPause
+
+    inPause = True
+    window.fill(mainColor)
 
     retry_message = police.render("[P]ause", True, MPOLICE_COLOR)
     retry_width, retry_height = retry_message.get_size()
@@ -494,13 +559,12 @@ def pausef():
     un_pause_message = police.render("[E]chap", True, M2POLICE_COLOR)
     un_pause_message_width, un_pause_message_height = un_pause_message.get_size()
     window.blit(un_pause_message, ((WINDOW_WIDTH - un_pause_message_width) // 2, (WINDOW_HEIGHT - un_pause_message_height) // 2 + 30))
-    pygame.display.flip()
 
 ####################################################### Color animation #######################################################
 
-red=main_color[0]
-green=main_color[1]
-blue=main_color[2]
+red=mainColor[0]
+green=mainColor[1]
+blue=mainColor[2]
 
 ry = False #red to yellow
 yg = False # yellow to green
@@ -510,7 +574,11 @@ bp = False # blue to purple
 pr = False # purple to red
 
 def animate_color(speed):
-    global main_color, red, green, blue, ry,yg,gc,cb,bp,pr
+    """
+    Anime les couleurs (rgb)
+    """
+    
+    global mainColor, red, green, blue, ry,yg,gc,cb,bp,pr
     if(speed == 0):
         return
     
@@ -570,65 +638,72 @@ def animate_color(speed):
                     cb = False
                     bp = False
 
-    main_color = (red,green,blue)
+    mainColor = (red,green,blue)
+
+def pause_game(pause: bool):
+    global inPause
+    
+    inPause = pause
+    
+    if inPause:
+        pygame.mixer.music.pause()
+    else:
+        pygame.mixer.music.unpause()
+
+def manage_keys():
+    global inPause, isDead, window_stopped, isInStartMenu
+    for evenement in pygame.event.get():
+        if evenement.type == pygame.QUIT:
+            exit()
+            window_stopped = True
+        elif evenement.type == pygame.KEYDOWN:
+            if evenement.key == KEY_RIGHT:
+                move_player(TO_THE_RIGHT)
+            elif evenement.key == KEY_LEFT:
+                move_player(TO_THE_LEFT)
+            elif evenement.key == KEY_ENTER:
+                isInStartMenu = False
+            elif evenement.key == KEY_QUIT:
+                exit()
+                window_stopped = True
+            elif evenement.key == KEY_RETRY and isDead:
+                reset()
+            elif evenement.key == KEY_PAUSE:
+                    pause_game(True)
+            elif evenement.key == KEY_UNPAUSE:
+                    pause_game(False)
 
 ####################################################### Main loop #######################################################
 
 isInStartMenu = True
 isDead = False
-pause = False
+inPause = False
 game_over = False 
 
-while not fini:
-        #--- Traiter entrées joueur
-        for evenement in pygame.event.get():
-            if evenement.type == pygame.QUIT:
-                exit()
-                fini = True
-            elif evenement.type == pygame.KEYDOWN:
-                if evenement.key == KEY_RIGHT:
-                    move_player(TO_THE_RIGHT)
-                elif evenement.key == KEY_LEFT:
-                    move_player(TO_THE_LEFT)
-                elif evenement.key == KEY_ENTER:
-                    isInStartMenu = False
-                elif evenement.key == KEY_QUIT:
-                    exit()
-                    fini = True
-                elif evenement.key == KEY_RETRY:
-                    if isDead == True:
-                        reset()
-                elif evenement.key == KEY_PAUSE:
-                    pause = True
-                elif evenement.key == KEY_UNPAUSE:
-                    pause = False
+while not window_stopped:
+    manage_keys()
+
+    delta = temps.tick(60)
                         
-        if isInStartMenu:
-            render_home_screen()
-        
-        elif pause:
-            pausef()
+    if isInStartMenu:
+        draw_home_screen()
+    elif inPause:
+        draw_paused_game()
+    elif isDead:
+        draw_death_screen()
+    else:
+        draw_game()
+        move_entities(delta)
+        spawn_entities()
+        move_entity_animation(delta, player)
+        collide_player()
+        draw_death_screen()
+        animate_color(levels[current_level]["rgb_speed"] * 2)
+        update_level_up_text_counter(delta)
 
-            #--- 60 images par seconde
+        timeElapsed += delta
 
-        elif isDead:
-            render_death_screen
-        else :
-
-            delta = temps.tick(60)
-            draw_game()
-            move_entities(delta)
-            spawn_entities()
-            move_entity_animation(delta, player)
-            damage_player()
-            render_death_screen()
-            animate_color(levels[current_level]["rgb_speed"] * 2)
-            update_level_up_text_counter(delta)
-
-            time_elapsed += delta
-
-        #--- Afficher (rafraîchir) l'écran
-        pygame.display.flip()
+    pygame.display.flip()
 
 pygame.time.wait(5000)
 pygame.display.quit()
