@@ -24,6 +24,8 @@ PLAYER_SIZE_2 = (PLAYER_SIZE, PLAYER_SIZE)
 COL_NUMBERS = 7 # Nombre de colonnes
 COL_SIZE = WINDOW_WIDTH/COL_NUMBERS # taille d'une colonne
 
+DEFAULT_COLOR = (0, 255, 255)
+
 KEY_RIGHT = pygame.K_RIGHT
 KEY_LEFT = pygame.K_LEFT
 KEY_QUIT = pygame.K_q
@@ -55,23 +57,23 @@ POTION_IMAGE = pygame.transform.scale(POTION_IMAGE, (80, 80))
 # Partie musique du jeu
 MENU_MUSIC = pygame.mixer.music.load("assets/audio/menu-music.mp3")
 
-pygame.mixer.music.play(loops=-1)
-
 HP_BAR_SIZE = 7
 
 
-playerMaxHealth = 100
-playerHealth = playerMaxHealth
+player_max_health = 100
+player_health = player_max_health
 
-mainColor = (0,255,255)
+is_ini_start_menu = True
+is_dead = False
+in_pause = False
+game_over = False 
 
 pygame.mixer.init()
-damageSound = pygame.mixer.Sound("assets/audio/hurt.mp3")
-healSound = pygame.mixer.Sound("assets/audio/potion1.mp3")
-#pygame.mixer.music.play(loops=-1, start=0.0)
+damage_sound = pygame.mixer.Sound("assets/audio/hurt.mp3")
+heal_sound = pygame.mixer.Sound("assets/audio/potion1.mp3")
 
-pygameIcon = pygame.image.load('assets/images/icon.png')
-pygame.display.set_icon(pygameIcon)
+icon = pygame.image.load('assets/images/icon.png')
+pygame.display.set_icon(icon)
 
 pygame.display.set_caption("Jump'N'Surf")
 
@@ -80,13 +82,19 @@ window = pygame.display.set_mode(windowDimensions)
 
 window.fill(BG_COLOR)
 window_stopped = False
-temps = pygame.time.Clock()
-timeElapsed = 0
+time = pygame.time.Clock()
+time_elapsed = 0
 
 ####################################################### Utils #######################################################
 
 def col_to_pos(col):
     return int(col * COL_SIZE + COL_SIZE / 2)
+
+
+def play_music():
+    pygame.mixer.music.play(loops=-1)
+
+play_music()
 
 ####################################################### Entities #######################################################
 
@@ -144,16 +152,16 @@ def collide_player():
     Appelé pour detecter les entitiées qui rentrent en collision avec le joueur
 
     """
-    global player, playerHealth
+    global player, player_health
     for entity in entities:
         th = 80
         if (entity["damage"] != 0 and (player["y"] <= entity["y"] + 30 and entity["y"] + th <= WINDOW_HEIGHT) and player["col"] == entity["col"]):
             entities.remove(entity)
             if(entity["damage"] > 0):
-                damageSound.play()
+                damage_sound.play()
             else:
-                healSound.play()
-            playerHealth = min(playerHealth - entity["damage"], playerMaxHealth)
+                heal_sound.play()
+            player_health = min(player_health - entity["damage"], player_max_health)
 
 
 def move_player(sens):
@@ -234,13 +242,13 @@ def spawn_entities():
     """
 
     for entity_type in levels[current_level]["entities"]:
-        if timeElapsed % entity_type["spawn_rate"] == 0:
+        if time_elapsed % entity_type["spawn_rate"] == 0:
             entities.append(spawn_entity(entity_type["type"]))
 
 ####################################################### Level #######################################################
 
 
-def create_level(col_amount: int, required_score: int, rgb_speed, entities: list):
+def create_level(col_amount: int, required_score: int, rgb_speed, message, entities: list):
     """
     Crée un level
     """
@@ -248,6 +256,7 @@ def create_level(col_amount: int, required_score: int, rgb_speed, entities: list
         "required_score": required_score,
         "col_amount": col_amount,
         "rgb_speed": rgb_speed,
+        "message": message,
         "entities": entities
     }
 
@@ -258,18 +267,20 @@ levels = [
         7,
         0,
         0,
+        "Doge the enemies !",
         [
             {
                 "type": "terminator",
                 "spawn_rate": 50
             },
-              
         ]
     ),
+    # Level 2
     create_level(
-        7,
+        8,
         20,
         1,
+        "Watch out for spike balls!",
         [
             {
                 "type": "terminator",
@@ -285,10 +296,12 @@ levels = [
             }   
         ]
     ),
+    # Level 3
     create_level(
         7,
         50,
         5,
+        "The cyphers are coming!",
         [
             {
                 "type": "terminator",
@@ -298,7 +311,7 @@ levels = [
                 "type": "spike_ball",
                 "spawn_rate": 100
             },
-                        {
+            {
                 "type": "cypher",
                 "spawn_rate": 200
             },
@@ -308,10 +321,12 @@ levels = [
             }
         ]
     ),
+    # Level 4
     create_level(
         7,
         100,
         10,
+        "Survive the onslaught!",
         [
             {
                 "type": "terminator",
@@ -321,7 +336,6 @@ levels = [
                 "type": "spike_ball",
                 "spawn_rate": 80
             },
-            
             {
                 "type": "cypher",
                 "spawn_rate": 100
@@ -332,10 +346,12 @@ levels = [
             }
         ]
     ),
+    # Level 5
     create_level(
         7,
         150,
         20,
+        "Still alive ? But not for long...",
         [
             {
                 "type": "terminator",
@@ -359,7 +375,37 @@ levels = [
             }
         ]
     ),
+    # Level 5
+    create_level(
+        7,
+        250,
+        20,
+        "Quite impressive... Now, die!",
+        [
+            {
+                "type": "terminator",
+                "spawn_rate": 150
+            },
+            {
+                "type": "spike_ball",
+                "spawn_rate": 100
+            },
+            {
+                "type": "cypher",
+                "spawn_rate": 60
+            },
+            {   
+                "type": "jake",
+                "spawn_rate": 200
+            },
+            {
+                "type": "potion",
+                "spawn_rate": 220
+            }
+        ]
+    ),
 ]
+
 
 def add_score(amount: int):
     """
@@ -392,15 +438,15 @@ def draw_borders():
     Dessine les bords
     """
 
-    pygame.draw.rect(window, mainColor, ((0, 0), (COL_SIZE, WINDOW_HEIGHT)))
-    pygame.draw.rect(window, mainColor, ((WINDOW_WIDTH - COL_SIZE, 0), (COL_SIZE, WINDOW_HEIGHT)))
+    pygame.draw.rect(window, main_color, ((0, 0), (COL_SIZE, WINDOW_HEIGHT)))
+    pygame.draw.rect(window, main_color, ((WINDOW_WIDTH - COL_SIZE, 0), (COL_SIZE, WINDOW_HEIGHT)))
 
 def draw_player():
     """
     Dessine le joueur
     """
     
-    pygame.draw.rect(window, mainColor, (
+    pygame.draw.rect(window, main_color, (
     (player["x"] - PLAYER_SIZE/2, player["y"]), # pour qu'il soit a l'exact milieu de l'ecran
     PLAYER_SIZE_2), 
     16, 3) #pour les bord arrondis et l'outlineµ
@@ -411,14 +457,14 @@ def draw_hp():
     """
     
     pygame.draw.rect(window, (255,0,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE, HP_BAR_SIZE)), 0, 3)
-    pygame.draw.rect(window, (0,255,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE / playerMaxHealth * playerHealth, HP_BAR_SIZE)),0,3)
+    pygame.draw.rect(window, (0,255,0), ((player["x"] - PLAYER_SIZE/2, player["y"] + 55), (PLAYER_SIZE / player_max_health * player_health, HP_BAR_SIZE)),0,3)
 
 def draw_score():
     """
     Dessine le texte du score
     """
     
-    marquoir = police.render(str(score), True, SCORE_COLOR)
+    marquoir = title_font.render(str(score), True, SCORE_COLOR)
     window.blit(marquoir, marquoir.get_rect(center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT // 10)))
 
 
@@ -442,28 +488,29 @@ def draw_game():
     draw_level_up_text()
 
 score = 0
-police = pygame.font.SysFont('monospace', WINDOW_HEIGHT//12, True ) 
+title_font = pygame.font.SysFont('monospace', WINDOW_HEIGHT//12, True )
+text_font = pygame.font.SysFont('monospace', WINDOW_HEIGHT//20, True ) 
 
 def draw_home_screen():
     """
     Dessine l'écran d'acceuil du jeu
     """
     
-    global police
+    global title_font
 
-    window.fill(mainColor)
+    window.fill(main_color)
 
     police_title = pygame.font.SysFont('Monospace', 60, True)
     title = police_title.render("Jump'N'Surf", True, MPOLICE_COLOR)
     title_width, title_height = police_title.size("Jump'N'Surf")
     window.blit(title, ((WINDOW_WIDTH - title_width) // 2, (WINDOW_HEIGHT - title_height) // 3))
 
-    message1 = police.render("[E]nter", True, M2POLICE_COLOR)
-    message1_width, message1_height = police.size("[E]nter")
+    message1 = title_font.render("[E]nter", True, M2POLICE_COLOR)
+    message1_width, message1_height = title_font.size("[E]nter")
     window.blit(message1, ((WINDOW_WIDTH - message1_width) // 2, 3 * WINDOW_HEIGHT // 5))
 
-    message2 = police.render("[Q]uit", True, M2POLICE_COLOR)
-    message2_width, message2_height = police.size("[Q]uit")
+    message2 = title_font.render("[Q]uit", True, M2POLICE_COLOR)
+    message2_width, message2_height = title_font.size("[Q]uit")
     window.blit(message2, ((WINDOW_WIDTH - message2_width) // 2, 3 * WINDOW_HEIGHT // 5 + 1.2 * message2_height))
 
 def draw_death_screen():
@@ -471,11 +518,11 @@ def draw_death_screen():
     dessine l'écran de mort
     """
 
-    global playerHealth, isDead, police, score
+    global player_health, is_dead, title_font, score
 
-    if playerHealth <= 0:
-       isDead = True
-       window.fill(mainColor)
+    if player_health <= 0:
+       is_dead = True
+       window.fill(main_color)
        
        police_character = pygame.font.SysFont('monospace', 24, True)
        message = police_character.render("GAME OVER!", True, MPOLICE_COLOR)
@@ -496,14 +543,17 @@ def reset():
     Réinitalise l'état
     """
 
-    global playerHealth, score, isDead, isInStartMenu, entities, current_level, timeElapsed
+    global player_health, score, is_dead, is_ini_start_menu, entities, current_level, time_elapsed
     entities = []
     score = 0
-    playerHealth = playerMaxHealth
-    isDead = False
-    isInStartMenu = False
-    timeElapsed = 0
+    player_health = player_max_health
+    is_dead = False
+    is_ini_start_menu = False
+    time_elapsed = 0
     current_level = 0
+    reset_colors()
+    pygame.mixer.music.stop()
+    play_music()
 
 
 level_up_display_timer = 0
@@ -516,11 +566,15 @@ def draw_level_up_text():
     if level_up_display_timer <= 0:
         return
 
-    global police, entities, current_level
+    global title_font, entities, current_level
 
-    message = police.render(f"Phase {current_level + 1}", True, SCORE_COLOR)
+    message = title_font.render(f"Phase {current_level + 1}", True, SCORE_COLOR)
     messageWidth, messageHeight = message.get_size()
-    window.blit(message, ((WINDOW_WIDTH - messageWidth) // 2, (WINDOW_HEIGHT - messageHeight) // 2))
+    window.blit(message, ((WINDOW_WIDTH - messageWidth) // 2, (WINDOW_HEIGHT - messageHeight) // 2 - 30))
+
+    message = text_font.render(f"{levels[current_level]['message']}", True, SCORE_COLOR)
+    messageWidth, messageHeight = message.get_size()
+    window.blit(message, ((WINDOW_WIDTH - messageWidth) // 2, (WINDOW_HEIGHT - messageHeight) // 2 + 30))
     
 def update_level_up_text_counter(delta):
     """
@@ -547,38 +601,44 @@ def draw_paused_game():
     Met le jeu en pause
     """
 
-    global police, inPause
+    global title_font, in_pause
 
-    inPause = True
-    window.fill(mainColor)
+    in_pause = True
+    window.fill(main_color)
 
-    retry_message = police.render("[P]ause", True, MPOLICE_COLOR)
+    retry_message = title_font.render("Game in pause !", True, MPOLICE_COLOR)
     retry_width, retry_height = retry_message.get_size()
     window.blit(retry_message, ((WINDOW_WIDTH - retry_width) // 2, (WINDOW_HEIGHT - retry_height) // 2 - 30))
 
-    un_pause_message = police.render("[E]chap", True, M2POLICE_COLOR)
+    un_pause_message = text_font.render("Press [Echap] to go back to the game", True, M2POLICE_COLOR)
     un_pause_message_width, un_pause_message_height = un_pause_message.get_size()
     window.blit(un_pause_message, ((WINDOW_WIDTH - un_pause_message_width) // 2, (WINDOW_HEIGHT - un_pause_message_height) // 2 + 30))
 
 ####################################################### Color animation #######################################################
 
-red=mainColor[0]
-green=mainColor[1]
-blue=mainColor[2]
+def reset_colors():
+    global main_color, red, green, blue, ry, yg, gc, cb, bp, pr
 
-ry = False #red to yellow
-yg = False # yellow to green
-gc = False # green to cyan
-cb = False # cyan to blue
-bp = False # blue to purple
-pr = False # purple to red
+    main_color = (DEFAULT_COLOR[0], DEFAULT_COLOR[1], DEFAULT_COLOR[2])
+    red=main_color[0]
+    green=main_color[1]
+    blue=main_color[2]
+
+    ry = False #red to yellow
+    yg = False # yellow to green
+    gc = False # green to cyan
+    cb = False # cyan to blue
+    bp = False # blue to purple
+    pr = False # purple to red
+
+reset_colors()
 
 def animate_color(speed):
     """
     Anime les couleurs (rgb)
     """
     
-    global mainColor, red, green, blue, ry,yg,gc,cb,bp,pr
+    global main_color, red, green, blue, ry,yg,gc,cb,bp,pr
     if(speed == 0):
         return
     
@@ -638,58 +698,53 @@ def animate_color(speed):
                     cb = False
                     bp = False
 
-    mainColor = (red,green,blue)
+    main_color = (red,green,blue)
 
 def pause_game(pause: bool):
-    global inPause
+    global in_pause
     
-    inPause = pause
+    in_pause = pause
     
-    if inPause:
+    if in_pause:
         pygame.mixer.music.pause()
     else:
         pygame.mixer.music.unpause()
 
 def manage_keys():
-    global inPause, isDead, window_stopped, isInStartMenu
-    for evenement in pygame.event.get():
-        if evenement.type == pygame.QUIT:
+    global in_pause, is_dead, window_stopped, is_ini_start_menu
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
             exit()
             window_stopped = True
-        elif evenement.type == pygame.KEYDOWN:
-            if evenement.key == KEY_RIGHT:
+        elif event.type == pygame.KEYDOWN:
+            if event.key == KEY_RIGHT:
                 move_player(TO_THE_RIGHT)
-            elif evenement.key == KEY_LEFT:
+            elif event.key == KEY_LEFT:
                 move_player(TO_THE_LEFT)
-            elif evenement.key == KEY_ENTER:
-                isInStartMenu = False
-            elif evenement.key == KEY_QUIT:
+            elif event.key == KEY_ENTER:
+                is_ini_start_menu = False
+            elif event.key == KEY_QUIT:
                 exit()
                 window_stopped = True
-            elif evenement.key == KEY_RETRY and isDead:
+            elif event.key == KEY_RETRY and is_dead:
                 reset()
-            elif evenement.key == KEY_PAUSE:
+            elif event.key == KEY_PAUSE:
                     pause_game(True)
-            elif evenement.key == KEY_UNPAUSE:
+            elif event.key == KEY_UNPAUSE:
                     pause_game(False)
 
 ####################################################### Main loop #######################################################
 
-isInStartMenu = True
-isDead = False
-inPause = False
-game_over = False 
-
 while not window_stopped:
     manage_keys()
 
-    delta = temps.tick(60)
+    delta = time.tick(60)
                         
-    if isInStartMenu:
+    if is_ini_start_menu:
         draw_home_screen()
-    elif inPause:
+    elif in_pause:
         draw_paused_game()
-    elif isDead:
+    elif is_dead:
         draw_death_screen()
     else:
         draw_game()
@@ -701,7 +756,7 @@ while not window_stopped:
         animate_color(levels[current_level]["rgb_speed"] * 2)
         update_level_up_text_counter(delta)
 
-        timeElapsed += delta
+        time_elapsed += delta
 
     pygame.display.flip()
 
