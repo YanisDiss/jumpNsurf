@@ -384,23 +384,23 @@ levels = [
         [
             {
                 "type": "terminator",
-                "spawn_rate": 150
+                "spawn_rate": 70
             },
             {
                 "type": "spike_ball",
-                "spawn_rate": 100
+                "spawn_rate": 50
             },
             {
                 "type": "cypher",
-                "spawn_rate": 60
+                "spawn_rate": 40
             },
             {   
                 "type": "jake",
-                "spawn_rate": 200
+                "spawn_rate": 190
             },
             {
                 "type": "potion",
-                "spawn_rate": 220
+                "spawn_rate": 100
             }
         ]
     ),
