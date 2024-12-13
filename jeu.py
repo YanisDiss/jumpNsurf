@@ -267,7 +267,7 @@ levels = [
         7,
         0,
         0,
-        "Doge the enemies !",
+        "Dodge the enemies !",
         [
             {
                 "type": "terminator",
